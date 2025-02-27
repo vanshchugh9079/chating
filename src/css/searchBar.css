@@ -1,0 +1,98 @@
+.suggestions-page {
+    background-color: #000;
+    color: #fff;
+    padding: 20px;
+    max-width: 600px;
+    margin: auto;
+    font-family: Arial, sans-serif;
+  }
+  
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  
+  .text {
+    flex-grow: 1;
+    margin-left: 20px;
+  }
+  
+  .next-button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .search-bar input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    border: none;
+  }
+  
+  .suggestions-list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .suggestion-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .profile-pic {
+    width: 50px;
+    height: 50px;
+    background-color: #ccc;
+    border-radius: 50%;
+    margin-right: 15px;
+  }
+  .magnify{
+    position: absolute !important;
+    color: black !important;
+    z-index: 5000;
+    font-size: 20px !important;
+  }
+  .pointer{
+    cursor: pointer !important;
+  }
+  .notification-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: #ff3b30; /* Vibrant red */
+    color: transparent; /* Hide the text to make it a simple dot */
+    width: 10px; /* Small circular dot */
+    height: 10px;
+    border-radius: 50%; /* Circular shape */
+    border: 2px solid black; /* Add a black border for contrast */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+  }
+  .notification-icon {
+    position: relative;
+    display: inline-block; /* To properly position the badge */
+  }
+  
+  .suggestion-info {
+    flex-grow: 1;
+  }
+  input{
+    z-index: 100;
+  }
+  .check-icon {
+    width: 20px;
+    height: 20px;
+    background-color: #007bff;
+    border-radius: 50%;
+  }
+  .searchBar{
+    width: 100vw;
+    background-color: black;
+  }

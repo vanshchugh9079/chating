@@ -1,0 +1,122 @@
+.profile-page {
+  width: 100% !important;
+  min-height: 100vh;
+  max-height: 100vh !important;
+  background-color: #000;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  overflow-y: auto !important;
+}
+.profile-page::-webkit-scrollbar{
+  background-color: grey;
+  width: 3px;
+}
+.profile-page::-webkit-scrollbar-thumb{
+  background-color: white;
+  border-radius: 50px;
+  transition: background-color 0.3s ease-in-out;
+  opacity: 0.5;
+  border: 2px solid white;
+}
+.profile-header {
+  display: flex;
+  align-items: center;
+}
+.profile-box{
+  height: fit-content !important;
+  max-height: auto !important;
+  object-fit: fill !important;
+}
+.profile-box img{
+  width: 100% !important;
+  height: auto !important;
+}
+.disabled-btn {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.my-list {
+  list-style: none;
+  font-weight: bold;
+}
+.profile-picture {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  margin-right: 20px;
+}
+.username {
+  font-size: 24px;
+}
+.edit-button {
+  background-color: #333;
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.stats {
+  margin: 10px 0;
+}
+
+.bio {
+  margin-top: 10px;
+}
+.highlights {
+  display: flex;
+  margin-top: 20px;
+  gap: 1rem;
+}
+
+.highlight {
+  background-color: #333;
+  padding: 10px;
+  margin-right: 10px;
+  border-radius: 50%;
+  text-align: center;
+}
+
+.profile-nav {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+  border-top: 1px solid #444;
+  border-bottom: 1px solid #444;
+  padding: 10px 0;
+}
+
+.posts-grid {
+  margin: 0 !important;
+  padding: 0 !important;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(30%, 1fr));
+  gap: 1rem;
+  background-color: black !important;
+  box-sizing: border-box;
+}
+
+.post {
+  width: 100%;
+  overflow: hidden;
+  background: #222;
+}
+
+.post img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media screen and (max-width: 900px) {
+  .profile-page {
+    width: 100% !important;
+  }
+
+  .posts-grid {
+    grid-template-columns: repeat(auto-fill, minmax(45%, 1fr));
+    gap: 0.5rem;
+  }
+}

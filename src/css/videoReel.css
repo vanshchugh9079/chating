@@ -1,0 +1,149 @@
+.video-reel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  width: 30vw !important;
+  height: 90vh;
+  /* Adjust as needed, or use 100vh for full viewport height */
+  background-color: #333;
+  /* Grey background */
+  overflow: hidden;
+  /* Prevent overflow issues */
+}
+
+.video-player {
+  width: 100%;
+  height: 80% !important;
+  object-fit: contain;
+  /* Ensures the video fits within the container */
+  border-radius: 10px;
+  /* Optional: for rounded edges */
+  z-index: 10 !important;
+}
+
+.danger {
+  color: red !important;
+}
+
+.link-overlay {
+  fill: none;
+  /* Make the center transparent */
+  font-weight: bold;
+  stroke: white;
+  /* Set the border color */
+  stroke-width: 5;
+  /* Adjust the border thickness */
+}
+
+.link-overlay:hover {
+  color: black;
+  fill: black !important;
+  cursor: pointer;
+  transition: fill 0.1s ease-in-out;
+  transform: scale(1.2);
+}
+
+.danger:hover {
+  color: red !important;
+  transition: color 0.3s ease-in-out;
+  transform: scale(1.2);
+  cursor: pointer;
+}
+
+.video-play {
+  position: absolute;
+  width: 100px;
+  /* Adjust based on the size you need */
+  height: 100px;
+  background: rgba(0, 0, 0, 0.6);
+  /* Semi-transparent black */
+  border-radius: 50%;
+  /* Circular shape */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+
+.video-reel:hover {
+  opacity: 0.9;
+}
+
+.v-btn {
+  fill: none;
+  height: max-content !important;
+  width: max-content !important;
+  border: 2px solid grey;
+  padding: 5px !important;
+}
+
+.v-range {
+  position: relative;
+  top: 5px;
+}
+
+.video-loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+.mute-btn {
+  border: 2px solid grey;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.v-btn:hover {
+  border: 2px solid grey;
+  cursor: pointer;
+}
+
+.play-icon {
+  font-size: 3rem;
+  /* Adjust size for the play icon */
+  color: white;
+}
+
+@keyframes showUp {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes showDown {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+.showUp {
+  animation: showUp 0.5s ease-in-out;
+}
+
+.showDown {
+  animation: showDown 0.5s ease-in-out;
+}
+
+@media screen and (max-width: 900px) {
+  .video-reel {
+    width: 80vw !important;
+    height: calc(80vh) !important;
+  }
+}
