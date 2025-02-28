@@ -10,7 +10,8 @@ let fetchPost = async (token, dispatch) => {
         })
         dispatch(setPost(response.data));
     } catch (error) {
-        if(error.status===500){
+        if(error.status===500 || error.status===401){
+            window.localStorage.clear();
             dispatch(setUserData({
                 user: null,
                 loggedIn: false
