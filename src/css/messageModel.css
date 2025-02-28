@@ -1,0 +1,77 @@
+.modal-overlay {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.7);
+    margin: 0;
+    padding: 0;
+  }
+  
+  .modal-content {    
+    margin: 0; 
+    padding: 10;
+    background: #333;
+    color: #fff;
+    border-radius: 8px;
+    width: 400px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  .close-model{
+    position: absolute !important;
+    display: inline;
+  }
+  .header{
+    padding: 0 !important;
+    margin: 0 !important;
+    border-bottom: 2px solid grey !important;
+  }
+  .modal-body {
+    margin-top: 10px;
+  }
+  
+  .to-section {
+    display: flex;
+    align-items: center;
+  }
+  
+  .to-section label {
+    margin-right: 10px;
+  }
+  
+  .to-section input {
+    flex: 1;
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #555;
+    background: #444;
+    color: #fff;
+  }
+  
+.model-footer{
+    display: flex !important;
+    width: 100%  !important;
+}
+.content-body{   
+    overflow-y: auto !important;
+    height: 90%;
+    max-height: 100% ;
+}
+.content-body-group{
+  overflow-y: auto !important;
+  height: 80%;
+  max-height: 80% !important;
+}
+.content-body-group::-webkit-scrollbar{
+  background-color: rgb(156, 156, 156) !important;
+  width: 5px !important;
+}
+.content-body::-webkit-scrollbar{
+  background-color: rgb(156, 156, 156) !important;
+  width: 5px !important;
+}
+.content-body::-webkit-scrollbar-thumb{
+  background-color: rgb(88, 88, 88) !important;
+  border-radius: 5px !important;
+}
+.content-body-group::-webkit-scrollbar-thumb{
+  background-color: rgb(88, 88, 88) !important;
+  border-radius: 5px !important;
+}

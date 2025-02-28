@@ -1,0 +1,91 @@
+.main-content {
+    padding: 20px;
+    box-sizing: border-box;
+    height: 100vh;
+    background: black;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+  }
+  .v-plus {
+    z-index: 1000;
+    color: black !important;
+    position: absolute !important;
+    border: 1px solid black !important;
+    bottom: 0px !important; /* Adjust position */
+    right: 0px !important;  /* Adjust position */
+    background-color: blue !important;
+    display: flex !important; 
+    align-items: center !important;  /* Aligns the content vertically */
+    justify-content: center !important;
+    width: 20px !important;  /* Adjust size */
+    height: 20px !important; /* Adjust size */
+    border-radius: 50% !important; /* Makes it circular */
+    font-size: 30px !important;  /* Adjust text size */
+    font-weight: bold !important;
+}
+
+  .main-content-search{
+    position: relative;
+    left: 30;
+    width: 67% !important;
+    padding: 20px;
+    box-sizing: border-box;
+    height: 100vh;
+    background: black;
+    overflow-y: scroll;
+    scroll-behavior: smooth;
+  }
+  .main-content::-webkit-scrollbar{
+    background-color: grey;
+    width: 3px;
+  }
+  .main-content::-webkit-scrollbar-thumb{
+    background-color: white;
+    border-radius: 50px;
+    transition: background-color 0.3s ease-in-out;
+    opacity: 0.5;
+    border: 2px solid white;
+  }
+  .insta-text {
+    font-family: 'Instagram';
+    margin-bottom: 20px;
+  }
+  .stories {
+    background: transparent !important;
+    width: 100%;
+    display: flex;
+    overflow-x: auto;
+    margin-bottom: 20px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .scroll-button{
+    height: 30px;
+    width: 30px;
+    border-radius: 50%;
+    font-weight: bold;
+    font-size: large;
+    text-align: center;
+  }
+  .stories::-webkit-scrollbar{
+    display: none;
+  }
+  .stories-container{
+    width: 65%;
+  }
+  .story{
+    cursor: pointer;
+  }
+  .posts {
+    display: flex;
+    flex-direction: column;
+  }
+  @media screen and (max-width: 900px) {
+    .main-content {
+      overflow-x: auto;
+      width: 100% !important;
+      height: 100% !important;
+      margin: 0;
+      padding: 0;
+    }
+  }
