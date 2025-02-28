@@ -8,6 +8,7 @@ let slice = createSlice({
             media: {},
             type: "",
             comment: [],
+            on:""
         },
     showComment: false
     }

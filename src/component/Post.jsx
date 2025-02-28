@@ -85,7 +85,8 @@ export default function Post({ likes, key, avatar, src, userName, createdAt, _id
               media:src,
               type:"post",
               comment:comment,
-              _id:_id
+              _id:_id,
+              on:"media"
             }))
             dispatch(setShowComment(true));
           }} />
@@ -98,7 +99,8 @@ export default function Post({ likes, key, avatar, src, userName, createdAt, _id
                 media:src,
                 type:"post",
                 comment:comment,
-                _id:_id
+                _id:_id,
+                on:"comment"
               }))
               dispatch(setShowComment(true));
             }}/>

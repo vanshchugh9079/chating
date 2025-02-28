@@ -165,7 +165,8 @@ const VideoReel = React.forwardRef(({ setMute, mute, userName, avatar, src, play
               media: src,
               type: "reel",
               comment: comment,
-              _id: _id
+              _id: _id,
+              on:"comment"
             }))
             dispatch(setShowComment(true));
           }}

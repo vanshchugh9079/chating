@@ -91,7 +91,7 @@ export default function CommentModel({ comment }) {
       <Row className="modal-content-comment bg-dark m-0 p-0 bg-secondary ">
         {/* Left Side: Image or Video */}
         <div className="v-border col-lg-5 col-md-6 col-12 d-flex img-parent h-100 bg-black justify-content-center align-items-center">
-          <div className="v-border col-lg-5 col-md-6 col-12 d-flex img-parent border-0 bg-black justify-content-center align-items-center h-100 w-100">
+          <div className={`v-border col-lg-5 col-md-6 col-12 d-lg-flex img-parent border-0 bg-black justify-content-center align-items-center h-100 w-100 ${comment.on!=="media" && "d-none"}`}>
             {comment.type === "post" && <img src={comment.media} className="v-img w-100 h-100" alt="Post " />}
             {comment.type === "reel" && (
               <div className="video-container ">
@@ -109,9 +109,8 @@ export default function CommentModel({ comment }) {
         </div>
 
         {/* Right Side: Comments Section */}
-        <div className="v-border col-lg-7 col-md-6 col-12 position-relative d-flex h-100 flex-column">
+        <div className={`v-border col-lg-7 col-md-6 col-12 position-relative d-lg-flex h-100 flex-column ${comment.on!=="comment" && "d-none"}`}>
           <h3 className="text-white px-3 pt-2">{allComments.length} Comments</h3>
-
           {/* Comments List */}
           <div className="all-comment d-flex flex-column flex-grow-1 px-3">
             {allComments.length > 0 ? (
