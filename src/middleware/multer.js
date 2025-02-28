@@ -7,9 +7,10 @@ const uploadDir = "public";
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
-
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
+        console.log("multer");
+        
         cb(null, uploadDir); // Directory to save the uploaded files
     },
     filename: function (req, file, cb) {
