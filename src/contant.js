@@ -1,5 +1,5 @@
 import axios from 'axios';
-let url="https://chatfightserver.onrender.com/api"; 
+let url="https://chatingfightserver.onrender.com/api"; 
 // Create an Axios instance with a base URL
 const api = axios.create({
   baseURL: url,  // Replace with your base URL
