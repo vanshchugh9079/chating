@@ -4,6 +4,8 @@ import Comment from "../../models/Comment.js";
 
 let getPost = async (req, res) => {
   try {
+    console.log("tu pagal hai");
+    
     let posts = await Post.find({})
       .populate("createdBy", "_id name avatar type follower")
       .exec(); // Only fetch necessary fields
