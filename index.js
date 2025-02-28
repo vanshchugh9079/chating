@@ -8,7 +8,6 @@ import { likedController } from "./src/socket/likedController.js";
 import { commentOnPost, commentOnReel } from "./src/socket/commentController.js";
 // Environment variables
 const PORT = process.env.PORT || 4000;
-const CLIENT_ORIGIN = "http://192.168.23.236:5173";
 
 // Graceful shutdown flag
 let isShuttingDown = false;
