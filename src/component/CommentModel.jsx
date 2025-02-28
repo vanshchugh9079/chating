@@ -90,7 +90,7 @@ export default function CommentModel({ comment }) {
       {/* Main Comment Modal */}
       <Row className="modal-content-comment bg-dark m-0 p-0 bg-secondary ">
         {/* Left Side: Image or Video */}
-        <div className="v-border col-lg-5 col-md-6 col-12 d-flex img-parent h-100 bg-black justify-content-center align-items-center">
+        <div className={`v-border col-lg-5 col-md-6 col-12 d-flex img-parent h-100 bg-black justify-content-center align-items-center ${comment.on!=="media" && "d-none"}`}>
           <div className={`v-border col-lg-5 col-md-6 col-12 d-lg-flex img-parent border-0 bg-black justify-content-center align-items-center h-100 w-100 ${comment.on!=="media" && "d-none"}`}>
             {comment.type === "post" && <img src={comment.media} className="v-img w-100 h-100" alt="Post " />}
             {comment.type === "reel" && (
