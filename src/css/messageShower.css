@@ -4,6 +4,12 @@
     margin: 0;
     padding: 0;
 }
+.is-code{
+    /* font-weight:bold !important; */
+    text-wrap: wrap !important;
+    overflow-x: hidden !important;
+    max-width: 97% !important;
+}
 .profile-page {
     background-color: #000;
     color: #fff;
@@ -236,7 +242,7 @@ footer {
     }
 
     .message-box {
-        height: 70vh;
+        min-height: 75vh !important;
     }
 
     .input-container {

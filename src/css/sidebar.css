@@ -7,6 +7,7 @@
     transition: width 0.5s ease-in-out;
     z-index: 1000 !important;
   }
+  
   .circle{
   height: 50px !important;
   width: 50px !important;

@@ -6,13 +6,13 @@ import { useSocket } from "../socket/SocketContext";
 import { useDispatch, useSelector } from "react-redux";
 import { setComment, setShowComment } from "../redux/slice/commentSlice";
 
-export default function Post({ likes, key, avatar, src, userName, createdAt, _id, youLiked,comment }) {
+export default function Post({ likes, key, avatar, src, userName, createdAt, _id, youLiked, comment, page }) {
   const [useAutoMargin, setUseAutoMargin] = useState(false);
   const user = useSelector((state) => state.user.user)
   const [liked, setLiked] = useState(false);
   const [count, setCount] = useState(likes);
   const imageRef = useRef(null);
-  let dispatch=useDispatch();
+  let dispatch = useDispatch();
   let socket = useSocket()
   useEffect(() => {
     if (imageRef.current) {
@@ -24,7 +24,7 @@ export default function Post({ likes, key, avatar, src, userName, createdAt, _id
     setLiked(youLiked);
   }, [youLiked]);
   useEffect(() => {
-    if(!socket) return;
+    if (!socket) return;
     let getLike = ({ post }) => {
       if (post._id === _id) {
         console.log(post);
@@ -80,33 +80,39 @@ export default function Post({ likes, key, avatar, src, userName, createdAt, _id
           </div>
         </div>
         <div className="post-media ms-auto me-auto mb-5 ">
-          <img ref={imageRef} src={src} alt="Post" className="img-fluid pointer" onClick={()=>{
-             dispatch(setComment({
-              media:src,
-              type:"post",
-              comment:comment,
-              _id:_id,
-              on:"media"
+          <img ref={imageRef} src={src} alt="Post" className="img-fluid pointer" onClick={() => {
+            dispatch(setComment({
+              media: src,
+              type: "post",
+              comment: comment,
+              _id: _id,
+              on: "media"
             }))
             dispatch(setShowComment(true));
           }} />
-          <div className="mt-1 d-flex w-100 ">
-            <FontAwesomeIcon icon={faHeart} className={`fs-3 ${liked ? "text-danger" : "post-icon"} icon `} title="like" onClick={() => {
-              handleLike()
-            }} />
-            <FontAwesomeIcon icon={faMessage} className="fs-3 post-icon icon ms-2" title="comment" onClick={()=>{
-              dispatch(setComment({
-                media:src,
-                type:"post",
-                comment:comment,
-                _id:_id,
-                on:"comment"
-              }))
-              dispatch(setShowComment(true));
-            }}/>
-            <FontAwesomeIcon icon={faSave} className={`fs-3 post-icon icon ms-auto `} />
-          </div>
-          <p className="text-white fs-6">{count} likes</p>
+
+          {
+            page != "explore" &&
+            <>
+              <div className="mt-1 d-flex w-100 ">
+                <FontAwesomeIcon icon={faHeart} className={`fs-3 ${liked ? "text-danger" : "post-icon"} icon `} title="like" onClick={() => {
+                  handleLike()
+                }} />
+                <FontAwesomeIcon icon={faMessage} className="fs-3 post-icon icon ms-2" title="comment" onClick={() => {
+                  dispatch(setComment({
+                    media: src,
+                    type: "post",
+                    comment: comment,
+                    _id: _id,
+                    on: "comment"
+                  }))
+                  dispatch(setShowComment(true));
+                }} />
+                <FontAwesomeIcon icon={faSave} className={`fs-3 post-icon icon ms-auto `} />
+              </div>
+              <p className="text-white fs-6">{count} likes</p>
+            </>
+          }
         </div>
       </div>
     </div>

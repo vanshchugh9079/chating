@@ -2,19 +2,22 @@ import React, { useEffect, useState, useCallback } from 'react';
 import "../css/sidebar.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faBars, faBell, faCompass, faHouse,
+  faBars, faBell, faCompass, faEllipsisH, faHouse,
   faMagnifyingGlass, faMessage, faPlus, faUser, faVideo
 } from '@fortawesome/free-solid-svg-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { setShowModel } from '../redux/slice/showCreateModel';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Row } from 'react-bootstrap';
+import { Dropdown, Row } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import logo from "../asset/images/logo.png";
+import logo from "../asset/images/favicon.webp";
 import { useSocket } from '../socket/SocketContext';
 import { api } from '../contant';
 import NotificationBar from './NotificationBar';
+import { setUserData } from '../redux/slice/user.slice';
+import popup from '../model/popup';
+import { parseNullDef } from 'openai/_vendor/zod-to-json-schema/index.mjs';
 
 const Sidebar = () => {
   const dispatch = useDispatch();
@@ -27,17 +30,19 @@ const Sidebar = () => {
   const [allNotification, setAllNotification] = useState([]);
   const [showNotificationBar, setShowNotificationBar] = useState(false);
   const [current, setCurrent] = useState("home");
-  const [prev,setPrev]=useState();
+  const [prev, setPrev] = useState();
+  const [isOpen, setIsOpen] = useState(false);
+
   const socket = useSocket();
 
-  let handleBorder=()=>{
-    if(!current) return;
-    if(prev===current) return ;
-    let currElement=document.querySelector("."+current);
-    let prevElement=document.querySelector("."+prev);
-    if(currElement){
+  let handleBorder = () => {
+    if (!current) return;
+    if (prev === current) return;
+    let currElement = document.querySelector("." + current);
+    let prevElement = document.querySelector("." + prev);
+    if (currElement) {
       currElement.classList.add("active");
-      if(prevElement) prevElement.classList.remove("active");
+      if (prevElement) prevElement.classList.remove("active");
       setPrev(current);
     }
   }
@@ -66,16 +71,16 @@ const Sidebar = () => {
 
   useEffect(() => {
     setDecreaseWidth(location.pathname.includes("message"));
-    if(location.pathname.includes("message")){
+    if (location.pathname.includes("message")) {
       setCurrent("message")
     }
-    else if(location.pathname.includes("profile")){
+    else if (location.pathname.includes("profile")) {
       setCurrent("v-profile");
     }
   }, [location]);
-  useEffect(()=>{
+  useEffect(() => {
     handleBorder()
-  },[current,location])
+  }, [current, location])
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -127,7 +132,7 @@ const Sidebar = () => {
       socket.on("follow-request", handleNotification);
       socket.on("accept-request", handleNotification);
       socket.on("liked-post", handleNotification);
-      socket.on("comment-post",handleNotification)
+      socket.on("comment-post", handleNotification)
       socket.on("accept-request-success", handleYourNotification);
       socket.on("decline-request-success", handleYourNotification);
       socket.on("read-notification", handleRead);
@@ -157,7 +162,7 @@ const Sidebar = () => {
       <Row className="m-0 p-0 ">
         <div className={sidebarClass}>
           {!decreaseWidth ? (
-            <h2>Instagram</h2>
+            <h2>Chat Fight</h2>
           ) : (
             <img src={logo} alt="logo" className="m-0 p-0 d-inline bg-black logo-img" width={50} height={50} />
           )}
@@ -168,9 +173,10 @@ const Sidebar = () => {
                 icon={faHouse}
                 label="Home"
                 decreaseWidth={decreaseWidth}
-                onClick={() =>{ 
+                onClick={() => {
                   setCurrent("home");
-                  handleNavigation("/")} }
+                  handleNavigation("/")
+                }}
               />
             </div>
             <div className='search'>
@@ -180,10 +186,14 @@ const Sidebar = () => {
                 decreaseWidth={decreaseWidth}
                 onClick={() => {
                   setCurrent("search")
-                  handleNavigation("/search")}}
+                  handleNavigation("/search")
+                }}
               />
             </div>
-            <div className='explore'>
+            <div className='explore' onClick={() => {
+              setCurrent("explore")
+              handleNavigation("/explore")
+            }}>
               <SidebarItem
                 icon={faCompass}
                 label="Explore"
@@ -197,7 +207,8 @@ const Sidebar = () => {
                 decreaseWidth={decreaseWidth}
                 onClick={() => {
                   setCurrent("reels")
-                  handleNavigation("/reel")}}
+                  handleNavigation("/reel")
+                }}
               />
             </div>
             <div className='message'>
@@ -224,7 +235,7 @@ const Sidebar = () => {
                   icon={faBell}
                   label="Notification"
                   decreaseWidth={decreaseWidth}
-                  onClick={()=>{
+                  onClick={() => {
                     setCurrent("notification")
                     goNotification();
                   }}
@@ -242,7 +253,8 @@ const Sidebar = () => {
                 decreaseWidth={decreaseWidth}
                 onClick={() => {
                   setCurrent("v-profile")
-                  handleNavigation(`/profile/${user?.name || 'guest'}`)}}
+                  handleNavigation(`/profile/${user?.name || 'guest'}`)
+                }}
               />
             </div>
             <div className='create'>
@@ -256,13 +268,19 @@ const Sidebar = () => {
                 }}
               />
             </div>
-            <div className='more'>
-              <SidebarItem
-                icon={faBars}
-                label="More"
-                decreaseWidth={decreaseWidth}
-              />
-            </div>
+            <Dropdown className=' m-0 p-0 v-dd'>
+           
+              <Dropdown.Toggle variant="black" id="" className='text-white m-0 p-0   ' onMouseEnter={(e) => {
+                e.preventDefault()
+              }}>
+                   <FontAwesomeIcon icon={faBars} label="more" className='text-white pe-2' />
+                   <p className='d-inline'>More</p>
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                <Dropdown.Item  onClick={()=>{
+                }}>Log Out</Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
           </ul>
         </div>
       </Row>
@@ -271,7 +289,7 @@ const Sidebar = () => {
   );
 };
 
-const SidebarItem = ({ icon, label, decreaseWidth, onClick,forMobile, children }) => (
+const SidebarItem = ({ icon, label, decreaseWidth, onClick, forMobile, children }) => (
   <li
     className="fs-6 d-flex align-items-center position-relative"
     onClick={onClick}
@@ -304,4 +322,4 @@ SidebarItem.defaultProps = {
 };
 
 export default Sidebar;
-export{SidebarItem}
+export { SidebarItem }

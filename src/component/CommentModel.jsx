@@ -13,7 +13,21 @@ export default function CommentModel({ comment }) {
   const user = useSelector((state) => state.user.user);
   const dispatch = useDispatch();
   const socket = useSocket();
+  const handleCommentSubmit = () => {
+    if (input.trim() === "") return;
+    const payload = {
+      post: comment._id,
+      id: user._id,
+      content: input,
+    };
 
+    if (comment.type === "post") {
+      socket.emit("comment-post", payload);
+    } else if (comment.type === "reel") {
+      socket.emit("comment-reel", payload);
+    }
+    setInput(""); // Clear input after sending
+  };
   // Function to handle date formatting
   const handleDate = (createdAt) => {
     const now = new Date();
@@ -33,8 +47,8 @@ export default function CommentModel({ comment }) {
     const handlePostComment = ({ comment }) => {
       setAllComments((prev) => [...prev, comment]);
       setInput("");
-    };
 
+    };
     if (socket) {
       socket.on("comment-post-success", handlePostComment);
       socket.on("comment-post", handlePostComment);
@@ -53,27 +67,11 @@ export default function CommentModel({ comment }) {
   }, [socket]);
 
   // Function to handle comment submission
-  const handleCommentSubmit = () => {
-    if (input.trim() === "") return;
 
-    const payload = {
-      post: comment._id,
-      id: user._id,
-      content: input,
-    };
-
-    if (comment.type === "post") {
-      socket.emit("comment-post", payload);
-    } else if (comment.type === "reel") {
-      socket.emit("comment-reel", payload);
-    }
-
-    setInput(""); // Clear input after sending
-  };
 
   return (
     <div
-      className="modal-overlay justify-content-center d-flex align-items-center   border-box"
+      className="modal-overlay justify-content-center d-flex align-items-center   "
       role="dialog"
       aria-modal="true"
     >
@@ -90,8 +88,8 @@ export default function CommentModel({ comment }) {
       {/* Main Comment Modal */}
       <Row className="modal-content-comment bg-dark m-0 p-0 bg-secondary ">
         {/* Left Side: Image or Video */}
-        <div className={`v-border col-lg-5 col-md-6 col-12 d-flex img-parent h-100 bg-black justify-content-center align-items-center ${comment.on!=="media" && "d-none"}`}>
-          <div className={`v-border col-lg-5 col-md-6 col-12 d-lg-flex img-parent border-0 bg-black justify-content-center align-items-center h-100 w-100 ${comment.on!=="media" && "d-none"}`}>
+        <div className={`v-border col-lg-5 col-md-6 col-12  d-lg-flex img-parent h-100 bg-black justify-content-center align-items-center ${comment.on !== "media" && "d-none"}`}>
+          <div className={`v-border col-lg-5 col-md-6 col-12 d-lg-flex img-parent border-0 bg-black justify-content-center align-items-center h-100 w-100 ${comment.on !== "media" && "d-none"}`}>
             {comment.type === "post" && <img src={comment.media} className="v-img w-100 h-100" alt="Post " />}
             {comment.type === "reel" && (
               <div className="video-container ">
@@ -99,55 +97,70 @@ export default function CommentModel({ comment }) {
                   src={comment?.media}
                   className="w-100 h-100"
                   controls
-                  type="video/mp4"
+                  type="vid eo/mp4"
                   onError={(e) => console.error("Video Error:", e.target.error)}
                 />
-              </div>
+              </div >
             )}
-          </div>
+          </div >
 
         </div>
 
         {/* Right Side: Comments Section */}
-        <div className={`v-border col-lg-7 col-md-6 col-12 position-relative d-lg-flex h-100 flex-column ${comment.on!=="comment" && "d-none"}`}>
+        <div className={`v-border col-lg-7 col-md-6 col-12 position-relative d-lg-flex h-100  flex-column ${comment.on !== "comment" && "d-none"}`}>
           <h3 className="text-white px-3 pt-2">{allComments.length} Comments</h3>
           {/* Comments List */}
-          <div className="all-comment d-flex flex-column flex-grow-1 px-3">
-            {allComments.length > 0 ? (
-              allComments.map((c, i) => (
-                <div key={i} className="d-flex gap-3 comment-box align-items-center">
-                  <img
-                    src={c.createdBy.avatar.url}
-                    alt="User Avatar"
-                    className="message-avatar rounded-circle"
-                  />
-                  <div className="d-flex flex-column">
-                    <span className="text-white fw-bold">{c.createdBy.name || c.createdBy.userName}</span>
-                    <p className="text-white m-0">{c.content}</p>
+          <div className="  h-100">
+            <div className="d-flex flex-column h-75     position-relative all-comments">
+              {allComments.length > 0 ? (
+                allComments.map((c, i) => (
+                  <div key={i} className="d-flex gap-3 comment-box align-items-center">
+                    <img
+                      src={c.createdBy.avatar.url}
+                      alt="User Avatar"
+                      className="message-avatar rounded-circle"
+                    />
+                    <div className="d-flex flex-column">
+                      <span className="text-white fw-bold">{c.createdBy.name || c.createdBy.userName}</span>
+                      <p className="text-white m-0">{c.content}</p>
+                    </div>
+                    <p className="date ms-auto">{handleDate(c.createdAt)} ago</p>
                   </div>
-                  <p className="date ms-auto">{handleDate(c.createdAt)} ago</p>
-                </div>
-              ))
-            ) : (
-              <p className="text-muted text-center mt-4">No comments yet</p>
-            )}
+                ))
+              ) : (
+                <p className=" text-center text-white mt-4">No comments yet</p>
+              )}
+            </div>
+            <div className="h-25   v-upper d-flex   flex-column">
+              < div className="position-relative mt-4 ">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e)=>{
+                    if(e.key=="Enter"){
+                      handleCommentSubmit(e)
+                    }
+                  }}
+                  className="form-control mt-auto mb-auto position-absolute  text-white "
+                  placeholder="Add a comment..."
+                />
+                <button type="button" className="fs-4 button btn d-flex align-items-center  text-primary position-absolute v-upper me-2    end-0 pointer">
+                  <FontAwesomeIcon
+                    icon={faPaperPlane}
+                    className=""
+
+                    onClick={(e)=>{
+                      e.preventDefault();
+                      handleCommentSubmit(e);
+                    }}
+                  />
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Input Section */}
-          <div className="comment-input-container position-relative end-0 w-100 bottom-0 mt-auto mb-2  bg-dark d-flex align-items-center justify-content-center">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              className="form-control  text-white"
-              placeholder="Add a comment..."
-            />
-            <FontAwesomeIcon
-              icon={faPaperPlane}
-              className="fs-4 text-primary  end-0 pointer"
-              onClick={handleCommentSubmit}
-            />
-          </div>
         </div>
       </Row>
     </div>

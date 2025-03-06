@@ -129,6 +129,7 @@ function MainContent() {
   
   // Fetch posts on mount
   useEffect(() => {
+    
     fetchPost(user.token, dispatch);
   }, [user.token, dispatch]);
 
@@ -248,7 +249,7 @@ function MainContent() {
   }, [updateScrollButtons]);
 
   return (
-    <div className='w-100 h-100 '>
+    <div className='w-100  vh-100 '>
       <div className=' d-flex  align-items-center   mb-0 bg-secondory    d-lg-none text-white'>
         <div className='d-flex justify-content-center align-items-center bg-secondory '>
           <h1 className='insta-text fw-bold mt-2 ms-1'>Instagram</h1>

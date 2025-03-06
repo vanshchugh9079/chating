@@ -22,15 +22,19 @@ const MessageShower = () => {
     const socket = useSocket();
     const messageBoxRef = useRef(null);
     const onMobile = useSelector((state) => state.showNoti?.message);
+    const [loader,setLoader]=useState(false)
     let navigate = useNavigate();
 
     // Fetch chat messages when the component mounts
     useEffect(() => {
+        setLoader(false)
         const getChat = async () => {
             try {
                 const response = await api.get(`/chat/get/${chatId}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                console.log(response);
+
                 setAvatar(response.data.data.avatar);
                 setName(response.data.data.name);
                 setAllMessages(response.data.data.message);
@@ -55,6 +59,12 @@ const MessageShower = () => {
     useEffect(() => {
         if (socket) {
             const messageReceivedHandler = (data) => {
+                // console.log(data.createdBy==_id);
+
+                console.log(data.message.ai);
+                if(data.message.ai){
+                    setLoader(false)
+                }
                 setAllMessages(prevMessages => [...prevMessages, data.message]);
             };
 
@@ -116,20 +126,31 @@ const MessageShower = () => {
     // Send message function
     const sendMessage = () => {
         if (!message.trim()) return;
-        socket.emit("message", { chatId, content: message.trim() });
-        setMessage("");
-        setShowEmojiPicker(false);
+        if (name === "chat with ai") {
+            console.log(name);
+            setLoader(true)
+            socket.emit("ai-chat", {
+                message: message.trim(), id: _id, chatId
+            })
+            setMessage("");
+            setShowEmojiPicker(false);
+        }
+        else {
+            socket.emit("message", { chatId, content: message.trim() });
+            setMessage("");
+            setShowEmojiPicker(false);
+        }
     };
 
     // Function to detect code messages
-    const isCodeMessage = (text) => text.startsWith("```") && text.endsWith("```");
 
     return (
-        <div className="profile-page m-0 p-0 border-box ">
+        <div className="profile-page m-0 p-0  ">
             {/* Header */}
-            <header className="d-flex p-3 gap-2 position-relative fixed-top">
+            <header className="d-flex p-3 gap-2 position-relative fixed-top m-0">
                 <img src={avatar.url} alt="profile" className="profile" />
                 <h4 className="fw-bolder pointer" onClick={() => {
+                    if (name == "chat with ai") return;
                     if (groupChat) {
                         console.log(groupChat);
                         navigate("/message/chat/" + chatId);
@@ -157,6 +178,7 @@ const MessageShower = () => {
                         <img className="profile-center me-2" src={avatar.url} alt="profile" />
                         <h3>{name}</h3>
                         <button className="btn btn-secondary fw-bold text-white opacity-1" onClick={() => {
+                            if (name == "chat with ai") return;
                             if (groupChat) {
                                 navigate("/message/chat/" + chatId);
                             } else {
@@ -174,19 +196,30 @@ const MessageShower = () => {
                         return (
                             <React.Fragment key={id}>
                                 {showDate && <div className="d-flex justify-content-center"><p className='text-secondary'>{messageDate}</p></div>}
-                                <div className={`w-100 d-flex mb-3 ${element.createdBy._id === _id ? "justify-content-end " : "justify-content-start"}`}>
+                                <div className={`w-100 d-flex mb-3 ${element.createdBy._id == _id && !element.ai ? "justify-content-end " : " justify-content-start p-2 "}`}>
                                     {
-                                        element.createdBy._id != _id &&
+                                        element.createdBy._id != _id && groupChat &&
                                         <div className='img-container'>
                                             <img src={element.createdBy.avatar.url} alt="profile" className="message-profile h-100 w-100 rounded-circle" />
                                         </div>
                                     }
-                                    <div className={`message-wrapper  ${element.createdBy._id === _id ? "sender" : groupChat ? "receiver" : ""}`}>
-                                        {groupChat && element.createdBy._id !== _id && (
+                                    <div className={`message-wrapper  ${element.createdBy._id == _id && !element.ai ? "sender" : groupChat ? "receiver" : " bg-secondary  "}`}>
+                                        {groupChat && element.createdBy._id != _id && (
                                             <p className='text-primary sender-name'>{element.createdBy.name}</p>
                                         )}
                                         <p className="v-message">
-                                            {element.content}
+                                            {
+                                                element.ai &&
+                                                <pre className='is-code fs-6'>
+                                                    {element.content}
+                                                </pre>
+                                            }
+                                            {
+                                                !element.ai &&
+                                                <p className='fs-6'>
+                                                    { element.content }
+                                                </p>
+                                            }
                                         </p>
                                     </div>
                                 </div>
@@ -194,12 +227,20 @@ const MessageShower = () => {
                         );
                     })
                 )}
+                {
+                    loader &&
+                    <div className='loader'>
+                        <div className="spinner-border text-secondary" role="status">
+                            <span className="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                }
             </div>
 
             {/* Footer (Message Input) */}
-            <footer className="d-flex justify-content-center align-items-center">
+            <footer className="d-flex justify-content-center align-items-center fixed-bottom mb-1">
                 <div className="input-container position-relative">
-                    <span className="emoji-icon" onClick={() => setShowEmojiPicker(prev => !prev)}>
+                    <span className="emoji-icon " onClick={() => setShowEmojiPicker(prev => !prev)}>
                         {!showEmojiPicker ? "😊" : "❌"}
                     </span>
                     {showEmojiPicker && <div className="emoji-picker"><EmojiPicker onEmojiClick={handleEmojiClick} /></div>}

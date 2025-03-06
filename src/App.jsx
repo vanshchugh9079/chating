@@ -12,6 +12,7 @@ import MessageDetailer from "./component/MessageDetailer";
 import MessageShower from "./component/MessageShower";
 import SearchBar from "./component/SearchBar";
 import ChatBox from "./component/ChatBox";
+import Explore from "./pages/Explore";
 
 export default function App() {
   const user = useSelector((state) => state.user || {});
@@ -26,7 +27,7 @@ export default function App() {
             <Route path="search" element={<SearchBar />} />
             <Route path="profile/:name" element={<Profile />} />
             <Route path="reel" element={<Reels />} />
-
+            <Route path="explore" element={<Explore />} />
             {/* Conditional Message Routes */}
             {onMobile ? (
               <>

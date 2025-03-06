@@ -45,7 +45,8 @@ export default function NotificationBar({ showBar, notifications, setShowBar ,se
                   media:notification.post.media.url,
                   type:"post",
                   comment:notification.post.comment,
-                  _id:notification.post._id
+                  _id:notification.post._id,
+                  on:"media"
                 }))
                 dispatch(setShowComment(true));
                 socket.emit("read-notification", allNotification);
@@ -58,7 +59,8 @@ export default function NotificationBar({ showBar, notifications, setShowBar ,se
                   media:notification.reel.media.url,
                   type:"reel",
                   comment:notification.reel.comment,
-                  _id:notification.reel._id
+                  _id:notification.reel._id,
+                  on:"media"
                 }))
                 dispatch(setShowComment(true));
                 socket.emit("read-notification", allNotification);
