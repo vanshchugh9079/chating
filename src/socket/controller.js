@@ -14,9 +14,10 @@ const registerUser = async(socket, allUser, id) => {
   let user=await User.findById(id).populate("follower");
   if(!user){
     console.log("user not found");
-    
   }
-  user.isOnline=true;
+  if(user){
+    user.isOnline=true;
+  }
   await user.save();
   user.follower.forEach((friend)=>{
     let socketId=allUser.get(friend._id.toString());

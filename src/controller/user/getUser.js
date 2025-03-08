@@ -14,6 +14,7 @@ let getUser = async (req, res) => {
             followingCount: user.following.length,
             isFollowing: req.user?.following.includes(user._id) || false,
             isFollower: req.user?.follower.includes(user._id) || false,
+
         });
     }
     const limit = 10;

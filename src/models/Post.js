@@ -9,7 +9,7 @@ let Post=new Schema({
             type:Schema.Types.ObjectId,
             ref:"User"
         }
-    ],
+    ],    
     media:{
         public_id:{
             type:String,

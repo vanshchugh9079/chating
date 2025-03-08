@@ -6,6 +6,7 @@ import { messageUser, registerUser,createChat, follow, unFollow, sendRequest, ac
 import { getYourStory, storyAdd } from "./src/socket/storyController.js";
 import { likedController } from "./src/socket/likedController.js";
 import { commentOnPost, commentOnReel } from "./src/socket/commentController.js";
+import { aiChat } from "./src/socket/aiChat.js";
 // Environment variables
 const PORT = process.env.PORT || 4000;
 
@@ -59,6 +60,9 @@ const startServer = async () => {
       })
       socket.on("read-notification",(data)=>{
         readNoti(socket,data)
+      })
+      socket.on("ai-chat",({message,id,chatId})=>{
+        aiChat(socket,message,id,chatId)
       })
 
       socket.on("story-added",(obj)=>{

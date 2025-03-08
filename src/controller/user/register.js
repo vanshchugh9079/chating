@@ -47,6 +47,16 @@ let register = async (req, res) => {
         }
     }
     const user = await User.create(userObj);
+    const chat = await Chat.create({
+        name:"chat with ai",
+        people:[user._id],
+        createdBy:user._id,
+        avatar:{
+            url:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQBQg72aurdEpJDu8909EdLHRsS6-_BL9CXrQ&s",
+        },
+        messages:[],
+        groupChat:false,
+    });
     const data = await jsonResponse(user);
     const response = new ApiResponse(data, 200, "User created successfully");
     res.cookie('token', response.data.token);

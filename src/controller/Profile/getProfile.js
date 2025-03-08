@@ -4,6 +4,7 @@ import ApiError from "../../utils/ApiError.js";
 import PostModel from "../../models/Post.js";
 import errorHandle from "../../utils/errorHandler.js";
 import mongoose from "mongoose";
+import Reel from "../../models/Reel.js";
 
 let getProfile = async (req, res) => {
     let name = req.params.name;
@@ -23,7 +24,7 @@ let getProfile = async (req, res) => {
     let posts = await PostModel.find({ createdBy: userObj._id })
         .populate("people", "name avatar _id")
         .exec();
-
+    let reels=await Reel.find({createdBy:userObj._id}).populate("people","name avatar _id").exec();
     // Check if the current user follows the profile user
     let arr = userObj.follower.map((element) => {
         return element._id.toString();
@@ -32,6 +33,7 @@ let getProfile = async (req, res) => {
     let youFollow = arr.includes(user.id);
     let you = await User.findById(user.id);
     let requestContain = you.request.includes(userObj._id);
+
     if (userObj.type === "private") {
         // Handle private profile access
         if (youFollow || userObj._id.toString() == user.id.toString()) {
@@ -58,6 +60,7 @@ let getProfile = async (req, res) => {
 
                 },
                 posts: [],
+                reels:[],
                 youFollow: false,
                 requested: requested,
                 requestContain: requestContain
@@ -70,6 +73,7 @@ let getProfile = async (req, res) => {
         let data = {
             user: userObj,
             posts: posts,
+            reels: reels,
             youFollow: youFollow,
             requestContain: requestContain,
         };
@@ -77,5 +81,4 @@ let getProfile = async (req, res) => {
         return res.status(200).json(response);
     }
 };
-
 export default errorHandle(getProfile);

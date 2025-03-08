@@ -4,6 +4,10 @@ let schema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "User"
     },
+    ai:{
+        type:Boolean,
+        default: false
+    },
     content:{
         type:String,
     },

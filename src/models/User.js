@@ -74,6 +74,16 @@ let schema = new Schema({
             ref: "Notification"
         }
     ],
+    savedPost:[
+        {
+            type: Schema.Types.ObjectId,
+            ref: "Post"
+        }
+    ],
+    savedReel:[{
+        type: Schema.Types.ObjectId,
+        ref: "Reel"
+    }],
     isOnline:{
         type: Boolean,
         default: false

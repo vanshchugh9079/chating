@@ -20,7 +20,7 @@ let login = async (req, res) => {
                 { name: enterSource },
                 { phone: enterSource }
             ]
-        });        
+        }).populate("notification savedPost savedReel reel post follower following");        
         if (!user) {
             throw new ApiError(404, `User not found:`);
         }
