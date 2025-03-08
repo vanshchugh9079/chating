@@ -9,7 +9,7 @@ let ai=async(content)=>{
         method: "POST",
         headers: {
           "Authorization": "Bearer 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",
-          "HTTP-Referer": "localhot:3000", // Optional. Site URL for rankings on openrouter.ai.
+          "HTTP-Referer": "https://chatingfightserver.onrender.com", // Optional. Site URL for rankings on openrouter.ai.
           "X-Title": "chatfight", // Optional. Site title for rankings on openrouter.ai.
           "Content-Type": "application/json"
         },
