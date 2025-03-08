@@ -252,7 +252,7 @@ function MainContent() {
     <div className='w-100  vh-100 '>
       <div className=' d-flex  align-items-center   mb-0 bg-secondory    d-lg-none text-white'>
         <div className='d-flex justify-content-center align-items-center bg-secondory '>
-          <h1 className='insta-text fw-bold mt-2 ms-1'>Instagram</h1>
+          <h1 className='insta-text fw-bold mt-2 ms-1'>Chat Fight</h1>
         </div>
         <div className='d-flex ms-auto  gap-1'>
           <div className='message'>
