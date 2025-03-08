@@ -24,6 +24,8 @@ let ai=async(content)=>{
         })
       });
       let data=await res.json();
+      console.log(data);
+      
       return data.choices[0].message.content;
 }
 
