@@ -5,6 +5,10 @@
     background: black;
     overflow-y: auto;
     scroll-behavior: smooth;
+
+  }
+  .z-1000{
+    z-index: 1000 !important;
   }
   .v-plus {
     z-index: 1000;

@@ -1,16 +1,19 @@
 import React, { useState, useEffect, useRef } from "react";
 import "../css/post.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHeart, faMessage, faSave } from "@fortawesome/free-solid-svg-icons";
+import { faBookmark, faHeart, faMessage, faSave } from "@fortawesome/free-solid-svg-icons";
 import { useSocket } from "../socket/SocketContext";
 import { useDispatch, useSelector } from "react-redux";
 import { setComment, setShowComment } from "../redux/slice/commentSlice";
+import { setUserData } from "../redux/slice/user.slice";
+import { api } from "../contant";
 
 export default function Post({ likes, key, avatar, src, userName, createdAt, _id, youLiked, comment, page }) {
   const [useAutoMargin, setUseAutoMargin] = useState(false);
   const user = useSelector((state) => state.user.user)
   const [liked, setLiked] = useState(false);
   const [count, setCount] = useState(likes);
+  const [saved,setSaved]=useState(false)
   const imageRef = useRef(null);
   let dispatch = useDispatch();
   let socket = useSocket()
@@ -19,6 +22,21 @@ export default function Post({ likes, key, avatar, src, userName, createdAt, _id
       const imgWidth = imageRef.current.clientWidth;
       setUseAutoMargin(imgWidth >= 500); // Adjust threshold as needed
     }
+    let savedPost =user.savedPost.filter((post)=>{
+      console.log(post);
+      if(post._id){
+        return post._id == _id;
+      }
+      else{
+        return post==_id;
+      }
+    })
+    if(savedPost.length>0){
+      setSaved(true)
+    }else{
+      setSaved(false)
+    }
+    
   }, []);
   useEffect(() => {
     setLiked(youLiked);
@@ -108,7 +126,31 @@ export default function Post({ likes, key, avatar, src, userName, createdAt, _id
                   }))
                   dispatch(setShowComment(true));
                 }} />
-                <FontAwesomeIcon icon={faSave} className={`fs-3 post-icon icon ms-auto `} />
+                <FontAwesomeIcon icon={faBookmark} className={`fs-3 post-icon ${saved ?"text-white":""} icon ms-auto `}  onClick={async()=>{
+                  console.log("save post")
+                  let res;
+                  if(!saved){
+                    setSaved(true)
+                     res=await api.get("/post/save/1/"+_id,{
+                      headers:{
+                        Authorization:`Bearer ${user.token}`,
+                      }
+                    })
+                  }
+                  else{
+                    setSaved(false)
+                    res=await api.get("/post/save/0/"+_id,{
+                      headers:{
+                        Authorization:`Bearer ${user.token}`,
+                      }
+                    })
+                  }
+                  console.log(res);
+                  dispatch(setUserData({
+                    user:res.data.data,
+                    loggedIn: true
+                  }))
+                }}/>
               </div>
               <p className="text-white fs-6">{count} likes</p>
             </>

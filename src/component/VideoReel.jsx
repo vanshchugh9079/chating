@@ -5,6 +5,8 @@ import { faBookmark, faComment, faHeart, faPlay, faShare, faVolumeHigh, faVolume
 import { setComment, setShowComment } from "../redux/slice/commentSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useSocket } from "../socket/SocketContext";
+import { setUserData } from "../redux/slice/user.slice";
+import { api } from "../contant";
 
 const VideoReel = React.forwardRef(({ setMute, mute, userName, avatar, src, playable, youFollow, you,like, _id, comment,youLiked }, ref) => {
   const[likes,setLikes]=useState(like.length)
@@ -13,6 +15,15 @@ const VideoReel = React.forwardRef(({ setMute, mute, userName, avatar, src, play
   const user = useSelector((state) => state.user.user)
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(true); // Loader state
+  const [saved,setSaved]=useState(false);
+  useEffect(()=>{
+    let savedReel=user.savedReel.filter((reel)=>{
+      return reel==_id;
+    })
+    if(savedReel.length>0){
+      setSaved(true)
+    }
+  },[])
   let socket = useSocket()
   let dispatch = useDispatch()
   const videoRef = useRef(null);
@@ -177,8 +188,33 @@ const VideoReel = React.forwardRef(({ setMute, mute, userName, avatar, src, play
         </div>
         <FontAwesomeIcon
           icon={faBookmark}
-          className="me-1 mb-2 link-overlay"
-          onClick={(e) => e.stopPropagation()}
+          className={`me-1 mb-2 link-overlay ${saved ?"text-white":""}`}
+          onClick={async(e) => {
+            e.stopPropagation()
+            let res;
+            if(!saved){
+              setSaved(true)
+               res=await api.get("/reel/save/1/"+_id,{
+                headers:{
+                  Authorization:`Bearer ${user.token}`,
+                }
+              })
+            }
+            else{
+              setSaved(false)
+              res=await api.get("/reel/save/0/"+_id,{
+                headers:{
+                  Authorization:`Bearer ${user.token}`,
+                }
+              })
+            }
+            console.log(res);
+            
+            dispatch(setUserData({
+              user:res.data.data,
+              loggedIn: true
+            }))
+          }}
           style={{ cursor: "pointer" }}
         />
       </div>

@@ -6,14 +6,17 @@ import { faSave, faTableCells, faUser, faVideo } from '@fortawesome/free-solid-s
 import getProfile from '../fetch/getProfile';
 import { useParams } from 'react-router-dom';
 import { useSocket } from '../socket/SocketContext.jsx'
+import { setComment, setShowComment } from '../redux/slice/commentSlice.js';
 const DEFAULT_AVATAR = '/default-avatar.png';
 const DEFAULT_POST = '/default-post.png';
 const Profile = () => {
   const { profile } = useSelector((state) => state.profile);
-  const { token, name, _id } = useSelector((state) => state.user.user);
+  const { token, name, _id,savedPost,savedReel } = useSelector((state) => state.user.user);
   const [youFollow, setYouFollow] = useState(false);
   const [requested, setRequested] = useState(false)
   const [showAccept, setShowAccept] = useState(false);
+  const [current, setCurrent] = useState("post");
+  const [reels, setReels] = useState([]);
   const [user, setUser] = useState({
     _id: "",
     avatar: { url: '' },
@@ -52,7 +55,7 @@ const Profile = () => {
         setRequested(true)
       })
       socket.on("accept-request", () => {
-        
+
         setShowAccept(false)
         setYouFollow(true)
       })
@@ -92,9 +95,9 @@ const Profile = () => {
       setYouFollow(profile.youFollow)
       setShowAccept(profile.requestContain)
       setPost(profile.posts || []);
+      setReels(profile.reels || []);
     }
   }, [profile]);
-
   return (
     <div className="profile-page  p-0 ps-2 pt-2 ">
       <header className="profile-header">
@@ -193,33 +196,145 @@ const Profile = () => {
       </section>
       <nav className="profile-nav">
         <ul className="d-flex w-100 justify-content-between p-0">
-          <li className="text-decoration-none list-style-none my-list ms-2">
-            <FontAwesomeIcon icon={faTableCells} className="me-2 " />
+          <li className={`text-decoration-none list-style-none my-list pointer ${current == "post" && "text-primary"} ms-2`} onClick={() => {
+            setCurrent("post")
+          }}>
+            <FontAwesomeIcon icon={faTableCells} className={`me-2   `} />
             POSTS
           </li>
-          <li className="text-decoration-none list-style-none my-list">
-            <FontAwesomeIcon icon={faVideo} className="me-2" />
+          <li className={`text-decoration-none list-style-none pointer ${current == "reel" && "text-primary"} my-list `} onClick={() => {
+            setCurrent("reel")
+          }}>
+            <FontAwesomeIcon icon={faVideo} className={`me-2 `} />
             REELS
           </li>
-          <li className="text-decoration-none list-style-none my-list me-2">
-            <FontAwesomeIcon icon={faSave} className="me-2" />
+          <li className={`text-decoration-none list-style-none pointer ${current == "saved" && "text-primary"} my-list me-2 `} onClick={() => {
+            setCurrent("saved")
+          }}>
+            <FontAwesomeIcon icon={faSave} className={`me-2 `} />
             SAVED
           </li>
         </ul>
       </nav>
-      <section className="posts-grid m-0 p-0">
-        {post.map((p, index) => (
-          <div className="m-0 post p-0 profile-box" key={index}>
-            <img
-              src={p.media.url}
-              alt={`Post ${index + 1}`}
-              style={{ objectFit: "cover" }}
-              className=" w-100 h-100 m-0 p-0 "
-              onError={(e) => (e.target.src = DEFAULT_POST)}
-            />
-          </div>
-        ))}
-      </section>
+      {
+        current === "post" && (
+          <section className="posts-grid m-0 p-0">
+            {post.map((p, index) => (
+              <div className="m-0 post p-0 profile-box" key={index}>
+                <img
+                  src={p.media.url}
+                  alt={`Post ${index + 1}`}
+                  style={{ objectFit: "cover" }}
+                  className=" w-100 h-100 m-0 p-0 "
+                  onClick={(e)=>{
+                    // e.preventDefault();
+                    // dispatch(setComment({
+                    //   media: p.media.url,
+                    //   type: "post",
+                    //   comment: p.comment,
+                    //   _id: p._id,
+                    //   on: "media"
+                    // }))
+                    // dispatch(setShowComment(true));
+                  }}
+                  onError={(e) => (e.target.src = DEFAULT_POST)}
+                />
+              </div>
+            ))}
+          </section>
+        )
+      }
+      {
+        current === "reel" && (
+          <section className="posts-grid m-0 p-0">
+            {reels.map((r, index) => (
+              <div className="m-0 post p-0 profile-box" key={index}>
+                <video
+                  muted
+                  src={r.media.url}
+                  alt={`Reel ${index + 1}`}
+                  className="w-100 h-100 m-0 p-0"
+                  onClick={(e)=>{
+                      // e.preventDefault();
+                      // dispatch(setComment({
+                      //   media: r.media.url,
+                      //   type: "reel",
+                      //   comment: r.comment,
+                      //   _id: element._id,
+                      //   on: "media"
+                      // }))
+                      // dispatch(setShowComment(true));
+                    }}
+                  onError={(e) => (e.target.src = DEFAULT_REEL)}
+                />
+              </div>
+            ))}
+          </section>
+
+        )
+      }
+      {
+        current === "saved" && (
+          <section className="posts-grid m-0 p-0">
+            {
+              console.log(savedReel)
+            }
+            {
+
+              console.log(savedPost)
+            }
+            {
+              savedPost && savedPost.map((element)=>(
+                <div className="m-0 post p-0 profile-box">
+                  <img
+                    src={element?.media?.url}
+                    alt="Saved Post"
+                    style={{ objectFit: "cover" }}
+                    className=" w-100 h-100 m-0 p-0  "
+                    onClick={(e)=>{
+                      e.preventDefault();
+                      // dispatch(setComment({
+                      //   media: element.media.url,
+                      //   type: "post",
+                      //   comment: element.comment,
+                      //   _id: element._id,
+                      //   on: "media"
+                      // }))
+                      // dispatch(setShowComment(true));
+                    }}
+                    onError={(e) => (e.target.src = DEFAULT_POST)}
+                  />
+                </div>
+              ))
+            }
+
+            {
+              savedReel &&savedReel.map((element)=>(
+                <div className="m-0 post p-0 profile-box d-flex h-100 align-items-center justify-content-center">
+                  <video
+                    muted
+                    src={element?.media?.url}
+                    alt="Saved Reel"
+                    className="w-100 h-100 m-0 p-0"
+                     onClick={(e)=>{
+                      e.preventDefault();
+                      // dispatch(setComment({
+                      //   media: element.media.url,
+                      //   type: "reel",
+                      //   comment: element.comment,
+                      //   _id: element._id,
+                      //   on: "media"
+                      // }))
+                      // dispatch(setShowComment(true));
+                     }}
+                    onError={(e) => (e.target.src = DEFAULT_REEL)}
+                  />
+                </div>
+              ))
+            }
+          </section>
+        )
+      }
     </div>
   );
 };

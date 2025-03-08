@@ -276,8 +276,9 @@ const Sidebar = () => {
                    <FontAwesomeIcon icon={faBars} label="more" className='text-white pe-2' />
                    <p className='d-inline'>More</p>
               </Dropdown.Toggle>
-              <Dropdown.Menu>
-                <Dropdown.Item  onClick={()=>{
+              <Dropdown.Menu className='w-50'>
+                <Dropdown.Item className='w-50'  onClick={async()=>{
+                   popup("warning", "Are you sure to log out?", "",true,10000000,true,dispatch,navigate)
                 }}>Log Out</Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>

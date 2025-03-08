@@ -16,8 +16,7 @@ import Explore from "./pages/Explore";
 
 export default function App() {
   const user = useSelector((state) => state.user || {});
-  const onMobile = useSelector((state) => state.showNoti?.message);
-
+  const onMobile = useSelector((state) => state.showNoti?.message)
   return (
     <BrowserRouter>
       <Routes>
@@ -28,7 +27,6 @@ export default function App() {
             <Route path="profile/:name" element={<Profile />} />
             <Route path="reel" element={<Reels />} />
             <Route path="explore" element={<Explore />} />
-            {/* Conditional Message Routes */}
             {onMobile ? (
               <>
                 <Route path="message" element={<Message />} />
