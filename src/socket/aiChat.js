@@ -8,7 +8,7 @@ let ai=async(content)=>{
    let res=await  fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
-          "Authorization": "Bearer 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",
+          "Authorization": "Bearer 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",
           "HTTP-Referer": "https://chatingfightserver.onrender.com", // Optional. Site URL for rankings on openrouter.ai.
           "X-Title": "chatfight", // Optional. Site title for rankings on openrouter.ai.
           "Content-Type": "application/json"
