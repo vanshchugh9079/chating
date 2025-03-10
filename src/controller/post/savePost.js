@@ -32,21 +32,37 @@ let saveReel = async (req, res) => {
 
         // Re-fetch the user with fully populated `savedPost`
         you = await User.findById(user.id)
-            .populate([
-                "notification savedReel reel post follower following",
-                {
-                    path: "savedPost",
-                    populate: [
-                        { path: "createdBy" },
-                        { path: "likes" },
-                        { 
-                            path: "comment", 
-                            populate: { path: "createdBy" } // Populating comment's creator directly
-                        }
-                    ]
+        .populate([
+            "notification", 
+            "savedReel", 
+            "reel", 
+            "post", 
+            "follower", 
+            "following",
+            {
+                path: "savedPost",  // Populating saved posts
+                populate: {
+                    path: "comment",  // Populating comments in saved posts
+                    select: "content createdBy createdAt ",  // Fetching necessary fields from the comment
+                    populate: {
+                        path: "createdBy",  // Populating the user who created the comment
+                        select: "name avatar _id" 
+                    }
                 }
-            ])
-            .exec();
+            },
+            {
+                path: "savedReel",  // Populating saved posts
+                populate: {
+                    path: "comment",  // Populating comments in saved posts
+                    select: "content createdBy createdAt ",  // Fetching necessary fields from the comment
+                    populate: {
+                        path: "createdBy",  // Populating the user who created the comment
+                        select: "name avatar _id"  // Fetching only the necessary fields of the user who created the comment
+                    }
+                }
+            }
+        ])
+        .exec();    
 
         let response = new ApiResponse(you, 200, "Saved post successfully");
         res.status(200).json(response);

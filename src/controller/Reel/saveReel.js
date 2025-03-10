@@ -37,10 +37,34 @@ let saveReel = async (req, res) => {
         // Re-fetch the user with fully populated `savedReel`
         you = await User.findById(user.id)
             .populate([
-                "notification savedPost reel post follower following",
+                "notification",
+                "savedReel",
+                "reel",
+                "post",
+                "follower",
+                "following",
                 {
-                    path: "savedReel",
-                    populate: [{ path: "createdBy" }, { path: "likes" }, { path: "comment", populate: { path: "createdBy" } }]
+                    path: "savedReel",  // Populating saved posts
+                    populate: {
+                        path: "comment",  // Populating comments in saved posts
+                        select: "content createdBy createdAt ",  // Fetching necessary fields from the comment
+                        populate: {
+                            path: "createdBy",  // Populating the user who created the comment
+                            select: "name avatar _id"  // Fetching only the necessary fields of the user who created the comment
+                        }
+                    }
+                }
+                ,
+                {
+                    path: "savedPost",  // Populating saved posts
+                    populate: {
+                        path: "comment",  // Populating comments in saved posts
+                        select: "content createdBy createdAt ",  // Fetching necessary fields from the comment
+                        populate: {
+                            path: "createdBy",  // Populating the user who created the comment
+                            select: "name avatar _id"  // Fetching only the necessary fields of the user who created the comment
+                        }
+                    }
                 }
             ])
             .exec();
