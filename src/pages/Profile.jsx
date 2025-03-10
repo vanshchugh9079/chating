@@ -220,7 +220,7 @@ const Profile = () => {
         current === "post" && (
           <section className="posts-grid m-0 p-0">
             {post.map((p, index) => (
-              <div className="m-0 post p-0 profile-box" key={index}>
+              <div className="m-0 post p-0 profile-box pointer" key={index}>
                 {
                   console.log(post)
                 }
@@ -251,7 +251,7 @@ const Profile = () => {
         current === "reel" && (
           <section className="posts-grid m-0 p-0">
             {reels.map((r, index) => (
-              <div className="m-0 post p-0 profile-box" key={index}>
+              <div className="m-0 post p-0 profile-box pointer" key={index}>
                 {
                   console.log(reels)
                 }
@@ -259,7 +259,7 @@ const Profile = () => {
                   muted
                   src={r?.media?.url}
                   alt={`Reel ${index + 1}`}
-                  className="w-100 h-100 m-0 p-0"
+                  className="w-100 h-100 m-0 p-0 pointer"
                   onClick={(e)=>{
                       e.preventDefault();
 
@@ -292,7 +292,7 @@ const Profile = () => {
             }
             {
               savedPost && savedPost.map((element)=>(
-                <div className="m-0 post p-0 profile-box">
+                <div className="m-0 post p-0 profile-box pointer">
                   <img
                     src={element?.media?.url}
                     alt="Saved Post"
@@ -317,7 +317,7 @@ const Profile = () => {
 
             {
               savedReel &&savedReel.map((element)=>(
-                <div className="m-0 post p-0 profile-box d-flex h-100 align-items-center justify-content-center">
+                <div className="m-0 post p-0 profile-box d-flex h-100 align-items-center pointer justify-content-center">
                   <video
                     muted
                     src={element?.media?.url}
