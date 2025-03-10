@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import { useSelector } from 'react-redux';
 
-const SOCKET_SERVER_URL = "http://localhost:3000"; // Replace with your Socket.IO server URL
+const SOCKET_SERVER_URL = "https://chatingfightserver.onrender.com"; // Replace with your Socket.IO server URL
 const SocketContext = createContext();
 
 export const SocketProvider = ({ children }) => {
