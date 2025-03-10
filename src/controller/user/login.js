@@ -1,3 +1,4 @@
+import { populate } from "dotenv";
 import User from "../../models/User.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
@@ -20,7 +21,23 @@ let login = async (req, res) => {
                 { name: enterSource },
                 { phone: enterSource }
             ]
-        }).populate("notification savedPost savedReel reel post follower following");        
+        }).populate("notification savedPost savedReel reel post follower following").populate({
+            path: "savedPost",
+            populate: {
+                path: "comment",
+                populate:{
+                    path:"createdBy",
+                }
+            }
+        }).populate({
+            path: "savedReel",
+            populate: {
+                path: "comment",
+                populate:{
+                    path:"createdBy",
+                }
+            }
+        });        
         if (!user) {
             throw new ApiError(404, `User not found:`);
         }
