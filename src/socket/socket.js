@@ -1,5 +1,5 @@
 import { io } from "socket.io-client";
 
-export const socket = io("https://chatingfightserver.onrender.com", {
+export const socket = io("http://localhost:3000", {
   transports: ["websocket"], // Ensure WebSocket transport is enabled
 });

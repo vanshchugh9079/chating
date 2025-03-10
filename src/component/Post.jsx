@@ -13,7 +13,7 @@ export default function Post({ likes, key, avatar, src, userName, createdAt, _id
   const user = useSelector((state) => state.user.user)
   const [liked, setLiked] = useState(false);
   const [count, setCount] = useState(likes);
-  const [saved,setSaved]=useState(false)
+  const [saved, setSaved] = useState(false)
   const imageRef = useRef(null);
   let dispatch = useDispatch();
   let socket = useSocket()
@@ -22,21 +22,21 @@ export default function Post({ likes, key, avatar, src, userName, createdAt, _id
       const imgWidth = imageRef.current.clientWidth;
       setUseAutoMargin(imgWidth >= 500); // Adjust threshold as needed
     }
-    let savedPost =user.savedPost.filter((post)=>{
+    let savedPost = user.savedPost.filter((post) => {
       console.log(post);
-      if(post._id){
+      if (post._id) {
         return post._id == _id;
       }
-      else{
-        return post==_id;
+      else {
+        return post == _id;
       }
     })
-    if(savedPost.length>0){
+    if (savedPost.length > 0) {
       setSaved(true)
-    }else{
+    } else {
       setSaved(false)
     }
-    
+
   }, []);
   useEffect(() => {
     setLiked(youLiked);
@@ -85,19 +85,22 @@ export default function Post({ likes, key, avatar, src, userName, createdAt, _id
     setLiked(!liked)
   };
   return (
-    <div className="mb-5" id={_id}>
-      <div className="post-top ms-lg-5 ms-1  d-flex flex-column">
-        <div className="d-flex">
-          <div className="post-image rounded-circle">
-            <img src={avatar} alt="avatar" className="w-100 h-100 rounded-circle" />
+    <div className={` ${!page && "mb-5" }`} id={_id}>
+      <div className={`post-top ms-lg-5 ${!page ? "ms-1" : "m-0"} d-flex flex-column`}>
+        {
+          !page &&
+          <div className="d-flex">
+            <div className="post-image rounded-circle">
+              <img src={avatar} alt="avatar" className="w-100 h-100 rounded-circle" />
+            </div>
+            <div className="post-user text-white ms-3">
+              <span>{userName} -</span>
+              <span className="text-secondary">{handleDate()}</span>
+              <p className="opacity-75" style={{ fontSize: "13px" }}>music</p>
+            </div>
           </div>
-          <div className="post-user text-white ms-3">
-            <span>{userName} -</span>
-            <span className="text-secondary">{handleDate()}</span>
-            <p className="opacity-75" style={{ fontSize: "13px" }}>music</p>
-          </div>
-        </div>
-        <div className="post-media ms-auto me-auto mb-5 ">
+        }
+        <div className={`post-media  ${!page ?"mb-5":"m-0 p-0" } `}>
           <img ref={imageRef} src={src} alt="Post" className="img-fluid pointer" onClick={() => {
             dispatch(setComment({
               media: src,
@@ -126,31 +129,31 @@ export default function Post({ likes, key, avatar, src, userName, createdAt, _id
                   }))
                   dispatch(setShowComment(true));
                 }} />
-                <FontAwesomeIcon icon={faBookmark} className={`fs-3 post-icon ${saved ?"text-white":""} icon ms-auto `}  onClick={async()=>{
+                <FontAwesomeIcon icon={faBookmark} className={`fs-3 post-icon ${saved ? "text-white" : ""} icon ms-auto `} onClick={async () => {
                   console.log("save post")
                   let res;
-                  if(!saved){
+                  if (!saved) {
                     setSaved(true)
-                     res=await api.get("/post/save/1/"+_id,{
-                      headers:{
-                        Authorization:`Bearer ${user.token}`,
+                    res = await api.get("/post/save/1/" + _id, {
+                      headers: {
+                        Authorization: `Bearer ${user.token}`,
                       }
                     })
                   }
-                  else{
+                  else {
                     setSaved(false)
-                    res=await api.get("/post/save/0/"+_id,{
-                      headers:{
-                        Authorization:`Bearer ${user.token}`,
+                    res = await api.get("/post/save/0/" + _id, {
+                      headers: {
+                        Authorization: `Bearer ${user.token}`,
                       }
                     })
                   }
                   console.log(res);
                   dispatch(setUserData({
-                    user:res.data.data,
+                    user: res.data.data,
                     loggedIn: true
                   }))
-                }}/>
+                }} />
               </div>
               <p className="text-white fs-6">{count} likes</p>
             </>

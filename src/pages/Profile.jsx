@@ -221,21 +221,24 @@ const Profile = () => {
           <section className="posts-grid m-0 p-0">
             {post.map((p, index) => (
               <div className="m-0 post p-0 profile-box" key={index}>
+                {
+                  console.log(post)
+                }
                 <img
-                  src={p.media.url}
+                  src={p?.media?.url}
                   alt={`Post ${index + 1}`}
                   style={{ objectFit: "cover" }}
                   className=" w-100 h-100 m-0 p-0 "
                   onClick={(e)=>{
-                    // e.preventDefault();
-                    // dispatch(setComment({
-                    //   media: p.media.url,
-                    //   type: "post",
-                    //   comment: p.comment,
-                    //   _id: p._id,
-                    //   on: "media"
-                    // }))
-                    // dispatch(setShowComment(true));
+                    e.preventDefault();
+                    dispatch(setComment({
+                      media: p.media.url,
+                      type: "post",
+                      comment: p.comment,
+                      _id: p._id,
+                      on: "media"
+                    }))
+                    dispatch(setShowComment(true));
                   }}
                   onError={(e) => (e.target.src = DEFAULT_POST)}
                 />
@@ -249,21 +252,25 @@ const Profile = () => {
           <section className="posts-grid m-0 p-0">
             {reels.map((r, index) => (
               <div className="m-0 post p-0 profile-box" key={index}>
+                {
+                  console.log(reels)
+                }
                 <video
                   muted
-                  src={r.media.url}
+                  src={r?.media?.url}
                   alt={`Reel ${index + 1}`}
                   className="w-100 h-100 m-0 p-0"
                   onClick={(e)=>{
-                      // e.preventDefault();
-                      // dispatch(setComment({
-                      //   media: r.media.url,
-                      //   type: "reel",
-                      //   comment: r.comment,
-                      //   _id: element._id,
-                      //   on: "media"
-                      // }))
-                      // dispatch(setShowComment(true));
+                      e.preventDefault();
+
+                      dispatch(setComment({
+                        media: r.media.url,
+                        type: "reel",
+                        comment: r?.comment,
+                        _id: r._id,
+                        on: "media"
+                      }))
+                      dispatch(setShowComment(true));
                     }}
                   onError={(e) => (e.target.src = DEFAULT_REEL)}
                 />
@@ -293,14 +300,14 @@ const Profile = () => {
                     className=" w-100 h-100 m-0 p-0  "
                     onClick={(e)=>{
                       e.preventDefault();
-                      // dispatch(setComment({
-                      //   media: element.media.url,
-                      //   type: "post",
-                      //   comment: element.comment,
-                      //   _id: element._id,
-                      //   on: "media"
-                      // }))
-                      // dispatch(setShowComment(true));
+                      dispatch(setComment({
+                        media: element?.media?.url,
+                        type: "post",
+                        comment: element?.comment,
+                        _id: element?._id,
+                        on: "media"
+                      }))
+                      dispatch(setShowComment(true));
                     }}
                     onError={(e) => (e.target.src = DEFAULT_POST)}
                   />
@@ -318,14 +325,14 @@ const Profile = () => {
                     className="w-100 h-100 m-0 p-0"
                      onClick={(e)=>{
                       e.preventDefault();
-                      // dispatch(setComment({
-                      //   media: element.media.url,
-                      //   type: "reel",
-                      //   comment: element.comment,
-                      //   _id: element._id,
-                      //   on: "media"
-                      // }))
-                      // dispatch(setShowComment(true));
+                      dispatch(setComment({
+                        media: element?.media?.url,
+                        type: "reel",
+                        comment: element?.comment,
+                        _id: element?._id,
+                        on: "media"
+                      }))
+                      dispatch(setShowComment(true));
                      }}
                     onError={(e) => (e.target.src = DEFAULT_REEL)}
                   />
