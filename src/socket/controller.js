@@ -13,7 +13,9 @@ const registerUser = async(socket, allUser, id) => {
   allUser.set(id, socket.id);
   let user=await User.findById(id).populate("follower");
   if(!user){
-    console.log("user not found");
+    console.log("user not found")
+    ;
+    return;
   }
   if(user){
     user.isOnline=true;

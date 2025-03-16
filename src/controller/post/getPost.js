@@ -23,9 +23,9 @@ let getPost = async (req, res) => {
     const sendPost = posts
       .filter((element) => {
         return (
-          element.createdBy.type === "public" ||
-          (element.createdBy.follower && element.createdBy.follower.includes(user.id)) ||
-          element.createdBy._id.toString() === user.id
+          element.createdBy?.type === "public" ||
+          (element.createdBy?.follower && element?.createdBy?.follower.includes(user.id)) ||
+          element.createdBy?._id.toString() === user.id
         );
       })
       .map((element) => ({

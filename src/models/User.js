@@ -19,12 +19,12 @@ let schema = new Schema({
     },
     phone: {
         type: String, // Changed to String for better control over format
-        required: true,
-        unique: true
+        unique:true,
+        default:null,
+        sparse:true
     },
     password: {
         type: String,
-        required: true
     },
     avatar: {
         public_id: {
@@ -94,7 +94,7 @@ let schema = new Schema({
 
 // Hash password before saving, only if password field is modified
 schema.pre("save", async function (next) {
-    if (this.isModified("password")) {
+    if (this.password && this.isModified("password")) {
         this.password = await bcrypt.hash(this.password, 10);
     }
     
@@ -103,6 +103,7 @@ schema.pre("save", async function (next) {
 
 // Compare passwords
 schema.methods.comparePassword = async function (password) {
+    if(!this.password) return true;
     return await bcrypt.compare(password, this.password);
 };
 
