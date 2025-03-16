@@ -145,11 +145,11 @@ const MessageShower = () => {
     // Function to detect code messages
 
     return (
-        <div className="profile-page m-0 p-0  ">
+        <div className="v-profile-page m-0 p-0  ">
             {/* Header */}
             <header className="d-flex p-3 gap-2 position-relative fixed-top m-0">
                 <img src={avatar.url} alt="profile" className="profile" />
-                <h4 className="fw-bolder pointer" onClick={() => {
+                <h4 className="fw-bold pointer" onClick={() => {
                     if (name == "chat with ai") return;
                     if (groupChat) {
                         console.log(groupChat);
@@ -192,7 +192,6 @@ const MessageShower = () => {
                     allMessages.map((element, id) => {
                         const messageDate = getDate(element.createdAt);
                         const showDate = id === 0 || getDate(allMessages[id - 1].createdAt) !== messageDate;
-
                         return (
                             <React.Fragment key={id}>
                                 {showDate && <div className="d-flex justify-content-center"><p className='text-secondary'>{messageDate}</p></div>}
@@ -238,8 +237,8 @@ const MessageShower = () => {
             </div>
 
             {/* Footer (Message Input) */}
-            <footer className="d-flex justify-content-center align-items-center fixed-bottom mb-1">
-                <div className="input-container position-relative">
+            <footer className="d-flex justify-content-center align-items-center  m-0 p-0 ">
+                <div className="input-container position-absolute ">
                     <span className="emoji-icon " onClick={() => setShowEmojiPicker(prev => !prev)}>
                         {!showEmojiPicker ? "😊" : "❌"}
                     </span>

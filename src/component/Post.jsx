@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setComment, setShowComment } from "../redux/slice/commentSlice";
 import { setUserData } from "../redux/slice/user.slice";
 import { api } from "../contant";
+import { useNavigate } from "react-router-dom";
 
 export default function Post({ likes, key, avatar, src, userName, createdAt, _id, youLiked, comment, page }) {
   const [useAutoMargin, setUseAutoMargin] = useState(false);
@@ -17,6 +18,7 @@ export default function Post({ likes, key, avatar, src, userName, createdAt, _id
   const imageRef = useRef(null);
   let dispatch = useDispatch();
   let socket = useSocket()
+  let navigate=useNavigate()
   useEffect(() => {
     if (imageRef.current) {
       const imgWidth = imageRef.current.clientWidth;
@@ -90,10 +92,25 @@ export default function Post({ likes, key, avatar, src, userName, createdAt, _id
         {
           !page &&
           <div className="d-flex">
-            <div className="post-image rounded-circle">
-              <img src={avatar} alt="avatar" className="w-100 h-100 rounded-circle" />
+            <div className="post-image rounded-circle" onClick={()=>{
+              dispatch(setShowComment(true));
+              dispatch(setComment({
+                media: avatar,
+                type: "post",
+                comment: comment,
+                _id: _id,
+                on: "media",
+                showOnlyProfile:true
+              }))
+            }}>
+              <img src={avatar} alt="avatar" className="w-100 pointer  h-100 rounded-circle" />
             </div>
-            <div className="post-user text-white ms-3">
+            <div className="post-user text-white ms-3 pointer" onClick={()=>{
+              if(userName.toLowerCase()=="you"){
+                userName=user.name;
+              }
+              navigate("/profile/"+userName)
+            }}>
               <span>{userName} -</span>
               <span className="text-secondary">{handleDate()}</span>
               <p className="opacity-75" style={{ fontSize: "13px" }}>music</p>

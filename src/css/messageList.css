@@ -93,9 +93,29 @@
   border-bottom: 1px solid grey !important;
 }
 .chat-list-container{
-  min-height: 54vh !important;
-  overflow-y: auto;
-  max-height: 55vh !important;
+  overflow-y: auto !important;
+  max-height: 58% !important;
+}
+.chat-list-container::-webkit-scrollbar {
+  width: 3px; /* Wider for better accessibility */
+  background-color: #f0f0f0; /* Light background for contrast */
+}
+
+.chat-list-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #6a6a6a, #383838); /* Smooth gradient */
+  border-radius: 10px; /* Rounded edges for a modern look */
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2); /* Adds depth */
+  transition: background 0.3s ease; /* Smooth hover transition */
+}
+
+.chat-list-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #555555, #222222); /* Darker on hover */
+}
+
+.chat-list-container::-webkit-scrollbar-track {
+  background: #e0e0e0; /* Slightly darker track for better contrast */
+  border-radius: 10px; /* Match the thumb's radius */
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
 }
 @media screen and (max-width:900px) {
   .profile-container{

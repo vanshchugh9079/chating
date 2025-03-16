@@ -129,8 +129,7 @@ function MainContent() {
   
   // Fetch posts on mount
   useEffect(() => {
-    
-    fetchPost(user.token, dispatch);
+    fetchPost(user.token, dispatch,navigate);
   }, [user.token, dispatch]);
 
   // Fetch stories
@@ -170,10 +169,8 @@ function MainContent() {
           setAllStory((prev) => {
             const updatedStories = [...prev];
             const userName = data.user?.name;
-
             if (userName) {
               const existingGroup = updatedStories.find(group => group[0]?.user?.name === userName);
-
               if (existingGroup) {
                 existingGroup.push(data);
               } else {
@@ -315,7 +312,9 @@ function MainContent() {
                   dispatch(setShowStory(true));
                 }
               }}>
-                <img src={user.avatar.url} alt="user" className="w-100 h-100 rounded-circle" />
+                <img src={user.avatar.url} onLoad={()=>{
+                  dispatch(setAvatar(user.avatar.url));
+                }} alt="user" className="w-100 h-100 rounded-circle" />
                 <div className='mt-2 p-2 text-white rounded-circle  v-plus end-0 rounded-circle'>
                   <h6 className="fs-3 text-white mt-1">+</h6>
                 </div>

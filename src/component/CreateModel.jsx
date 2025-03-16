@@ -182,7 +182,7 @@ const Modal = () => {
                       {
                         !createImage && imgUrl &&
                         <div className="w-100 h-100 ">
-                          <video src={myImage} controls className="w-100 h-100"></video>
+                          <video src={URL.createObjectURL(myImage)} controls className="w-100 mb-3 h-100"></video>
                           <button className="btn btn-primary" onClick={() => {
                             handleUpload()
                           }}>upload</button>
@@ -191,7 +191,7 @@ const Modal = () => {
                       {
                         imgUrl && createImage &&
                         <div className="w-100 h-100">
-                          <img src={imgUrl} alt="preview" className="w-100 h-100" />
+                          <img src={imgUrl} alt="preview" className="w-100 mb-3 h-100" />
                           <button className="btn btn-primary" onClick={() => {
                             handleUpload()
 

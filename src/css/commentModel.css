@@ -19,6 +19,14 @@
   margin-bottom: auto !important;
   margin-top: auto !important;
 }
+.modal-content-profile {
+  width: max-content;
+  max-width:80% !important;
+  height: 80% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 10px !important
+}
 
 .img-parent {
   position: relative;

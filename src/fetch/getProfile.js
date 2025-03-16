@@ -2,6 +2,8 @@ import { api } from "../contant";
 import { setProfile } from "../redux/slice/profile";
 let getProfile=async(name,token,dispatch)=>{
     try {
+        console.log(name+"tu pagal");
+        
         let response = await api.get(`/user/profile/${name}`,{
             headers:{
                 'Authorization': `Bearer ${token}`

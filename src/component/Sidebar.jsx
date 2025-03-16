@@ -168,7 +168,7 @@ const Sidebar = () => {
           )}
 
           <ul className="d-flex flex-column gap-3 p-0 m-0 ">
-            <div className='home'>
+            <div className='home '>
               <SidebarItem
                 icon={faHouse}
                 label="Home"
@@ -268,18 +268,27 @@ const Sidebar = () => {
                 }}
               />
             </div>
-            <Dropdown className=' m-0 p-0 v-dd'>
-           
-              <Dropdown.Toggle variant="black" id="" className='text-white m-0 p-0   ' onMouseEnter={(e) => {
-                e.preventDefault()
-              }}>
-                   <FontAwesomeIcon icon={faBars} label="more" className='text-white pe-2' />
-                   <p className='d-inline'>More</p>
+            <Dropdown className="v-dd mt-1 ">
+              <Dropdown.Toggle
+                variant="black"
+                id="dropdown-basic"
+                className="text-white d-flex align-items-center gap-2 p-0 "
+                onMouseEnter={(e) => e.preventDefault()}
+                aria-label="More Options"
+              >
+                <FontAwesomeIcon icon={faBars} className="text-white" />
+                {!decreaseWidth && <span>More</span>}
               </Dropdown.Toggle>
-              <Dropdown.Menu className='w-50'>
-                <Dropdown.Item className='w-50'  onClick={async()=>{
-                   popup("warning", "Are you sure to log out?", "",true,10000000,true,dispatch,navigate)
-                }}>Log Out</Dropdown.Item>
+
+              <Dropdown.Menu className="shadow  w-25  v-drop-item     ">
+                <Dropdown.Item
+                  className="text-danger  fw-bold   "
+                  onClick={() =>
+                    popup("warning", "Are you sure to log out?", "", true, 10000000, true, dispatch, navigate)
+                  }
+                >
+                  Log Out
+                </Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
           </ul>

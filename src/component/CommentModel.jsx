@@ -86,9 +86,9 @@ export default function CommentModel({ comment }) {
       />
 
       {/* Main Comment Modal */}
-      <Row className="modal-content-comment bg-dark m-0 p-0 bg-secondary ">
+      <Row className={` bg-dark  m-0  p-0 bg-secondary ${comment.showOnlyProfile? "modal-content-profile":" modal-content-comment"} `}>
         {/* Left Side: Image or Video */}
-        <div className={`v-border col-lg-5 col-md-6 col-12  d-lg-flex img-parent h-100 bg-black justify-content-center align-items-center ${comment.on !== "media" && "d-none"}`}>
+        <div className={`v-border   col-md-6 col-12  d-lg-flex img-parent h-100 bg-black justify-content-center  align-items-center ${comment.on !== "media"  && "d-none"} ${comment.showOnlyProfile? " col-lg-12 m-0 p-0":" col-lg-5 col-md-6"}`}>
           <div className={`v-border col-lg-5 col-md-6 col-12 d-lg-flex img-parent border-0 bg-black justify-content-center align-items-center h-100 w-100 ${comment.on !== "media" && "d-none"}`}>
             {comment.type === "post" && <img src={comment.media} className="v-img w-100 h-100" alt="Post " />}
             {comment.type === "reel" && (
@@ -105,63 +105,66 @@ export default function CommentModel({ comment }) {
           </div >
 
         </div>
-
         {/* Right Side: Comments Section */}
-        <div className={`v-border col-lg-7 col-md-6 col-12 position-relative d-lg-flex h-100  flex-column ${comment.on !== "comment" && "d-none"}`}>
-          <h3 className="text-white px-3 pt-2">{allComments.length} Comments</h3>
-          {/* Comments List */}
-          <div className="  h-100">
-            <div className="d-flex flex-column h-75     position-relative all-comments">
-              {allComments.length > 0 ? (
-                allComments.map((c, i) => (
-                  <div key={i} className="d-flex gap-3 comment-box align-items-center">
-                    <img
-                      src={c.createdBy.avatar.url}
-                      alt="User Avatar"
-                      className="message-avatar rounded-circle"
-                    />
-                    <div className="d-flex flex-column">
-                      <span className="text-white fw-bold">{c.createdBy.name || c.createdBy.userName}</span>
-                      <p className="text-white m-0">{c.content}</p>
-                    </div>
-                    <p className="date ms-auto">{handleDate(c.createdAt)} ago</p>
-                  </div>
-                ))
-              ) : (
-                <p className=" text-center text-white mt-4">No comments yet</p>
-              )}
-            </div>
-            <div className="h-25   v-upper d-flex   flex-column">
-              < div className="position-relative mt-4 ">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e)=>{
-                    if(e.key=="Enter"){
-                      handleCommentSubmit(e)
-                    }
-                  }}
-                  className="form-control mt-auto mb-auto position-absolute  text-white "
-                  placeholder="Add a comment..."
-                />
-                <button type="button" className="fs-4 button btn d-flex align-items-center  text-primary position-absolute v-upper me-2    end-0 pointer">
-                  <FontAwesomeIcon
-                    icon={faPaperPlane}
-                    className=""
+        {
+          !comment.showOnlyProfile &&
+          <div className={`v-border col-lg-7 col-md-6 col-12 position-relative d-lg-flex h-100  flex-column ${comment.on !== "comment" || comment.showOnlyProfile && "d-none col-0"}`}>
+            <h3 className="text-white px-3 pt-2">{allComments.length} Comments</h3>
+            {/* Comments List */}
+            <div className="  h-100">
+              <div className="d-flex flex-column h-75     position-relative all-comments">
+                {allComments.length > 0 ? (
+                  allComments.map((c, i) => (
+                    <div key={i} className="d-flex gap-3 comment-box align-items-center">
+                      <img
+                        src={c.createdBy.avatar.url}
+                        alt="User Avatar"
+                        className="message-avatar rounded-circle"
 
-                    onClick={(e)=>{
-                      e.preventDefault();
-                      handleCommentSubmit(e);
+                      />
+                      <div className="d-flex flex-column">
+                        <span className="text-white fw-bold">{c.createdBy.name || c.createdBy.userName}</span>
+                        <p className="text-white m-0">{c.content}</p>
+                      </div>
+                      <p className="date ms-auto">{handleDate(c.createdAt)} ago</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className=" text-center text-white mt-4">No comments yet</p>
+                )}
+              </div>
+              <div className="h-25   v-upper d-flex   flex-column">
+                < div className="position-relative mt-4 ">
+                  <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key == "Enter") {
+                        handleCommentSubmit(e)
+                      }
                     }}
+                    className="form-control mt-auto mb-auto position-absolute  text-white "
+                    placeholder="Add a comment..."
                   />
-                </button>
+                  <button type="button" className="fs-4 button btn d-flex align-items-center  text-primary position-absolute v-upper me-2    end-0 pointer">
+                    <FontAwesomeIcon
+                      icon={faPaperPlane}
+                      className=""
+
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleCommentSubmit(e);
+                      }}
+                    />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Input Section */}
-        </div>
+            {/* Input Section */}
+          </div>
+        }
       </Row>
     </div>
   );

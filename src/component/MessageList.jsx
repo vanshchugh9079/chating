@@ -79,6 +79,8 @@ const MessageList = () => {
   }, [socket, setAllChat]);
 
   useEffect(() => {
+    console.log(name);
+    
     getChat();
   }, []);
 
@@ -88,15 +90,9 @@ const MessageList = () => {
         <h2 className='ms-2  ' >{name} <span className="dropdown">&#9662;</span></h2>
         <span className="edit-icon">&#9998;</span>
       </div>
-      <div className="note-section m-0 p-0">
-        <div className="note-icon">
-          <span>Note...</span>
-          <div className="note-image"></div>
-          <p className='text-secondary'>Your note</p>
-        </div>
-      </div>
+
       <div className=''>
-        <div className='m-0 p-0 btn w-100 mt-2' onClick={() => navigate(`/message/${allChat[0]._id}`)}>
+        <div className='m-0 p-0 btn w-100  p-2' onClick={() => navigate(`/message/${allChat[0]._id}`)}>
           <div className="d-flex v-border position-relative">
             <img src={"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQBQg72aurdEpJDu8909EdLHRsS6-_BL9CXrQ&s"} alt="User Avatar" className="message-avatar" />
             <p className='text-white fw-bold ms-1 fs-6 mt-auto mb-auto me-auto'>{allChat[0]?.name}</p>
@@ -111,19 +107,21 @@ const MessageList = () => {
       </div>
       <div className="chat-list-container p-2">
         {allChat.length > 0 ? allChat.map((chat, id) => (
+          <>
           <div className={`m-0 p-0 btn w-100 mt-2 ${chat.name==="chat with ai" && "d-none"}`} key={id} onClick={() => navigate(`/message/${chat?._id}`)}>
             <div className="d-flex v-border position-relative">
               <img src={chat?.avatar?.url} alt="User Avatar" className="message-avatar" />
               <p className='text-white fw-bold ms-1 fs-6 mt-auto mb-auto me-auto'>{chat?.name}</p>
-              <div className='position-absolute end-0 d-flex align-items-center h-100'>
+              {/* <div className='position-absolute end-0 d-flex align-items-center h-100'>
                 <div className={`text-success online ${!chat?.isOnline && "d-none"} fw-bold me-3`}></div>
-              </div>
+              </div> */}
             </div>
           </div>
+          </>
         )) : <p className='text-secondary'>No messages found.</p>}
       </div>
-      <div className='  bottom-lg-0 d-flex justify-content-end position-absolute fixed-bottom   p-0 border-box  mb-lg-3 mb-5 me-5 justify-content-lg-center w-100 '>
-        <button className="new-chat-button me-2 mb-3 m-lg-0    " onClick={() => {
+      <div className='  bottom-lg-0 d-flex justify-content-end position-absolute fixed-bottom    p-0 border-box  mb-lg-3 mb-5 me-5 justify-content-lg-center w-100 '>
+        <button className="new-chat-button me-2    m-lg-0    " onClick={() => {
           dispatch(setShowMessageModel(true))
         }}>
           + New Chat

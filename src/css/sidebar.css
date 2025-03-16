@@ -5,9 +5,13 @@
     height: 100vh;
     border-right:1px solid gray;
     transition: width 0.5s ease-in-out;
+    overflow-y: hidden !important;
     z-index: 1000 !important;
+    overflow-x: hidden !important;
   }
-  
+  .z-plus{
+    z-index: 1000000000000000000000 !important;
+  }
   .circle{
   height: 50px !important;
   width: 50px !important;
@@ -26,7 +30,9 @@
     padding: 0 !important;
     margin-bottom: auto !important;
     list-style: none !important;
+    
   }
+
   .bottom-nav>li{
     margin: 0 !important;
     padding: 0 !important;
@@ -107,7 +113,10 @@
     display: flex;
     align-items: center;
   }
-  
+  .v-drop-item{
+    max-width: 50px !important;
+    overflow-x: hidden !important;
+  }
   .sidebar li:hover {
     color: #888;
   }

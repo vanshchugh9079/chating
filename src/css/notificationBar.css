@@ -1,5 +1,6 @@
 .bar-close {
-    transform: translate(-20vw);
+    transform: translate(-40vw);
+    display: hidden !important;
     transition: transform 0.5s ease;
 }
 .bar {

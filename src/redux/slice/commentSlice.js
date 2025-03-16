@@ -4,13 +4,14 @@ let slice = createSlice({
     name: "comment",
     initialState: {
         comment: {
-            _id:"",
+            _id: "",
             media: {},
             type: "",
             comment: [],
-            on:""
+            on: "",
+            showOnlyProfile: false
         },
-    showComment: false
+        showComment: false,
     }
     , reducers: {
         setComment: (state, action) => {
