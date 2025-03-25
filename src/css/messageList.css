@@ -130,4 +130,7 @@
     max-height: 60vh !important;
     padding: 0 !important;
   }
+  .new-chat-btn{
+    position: fixed;
+  }
 }

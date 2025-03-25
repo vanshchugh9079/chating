@@ -47,7 +47,6 @@ export default function CommentModel({ comment }) {
     const handlePostComment = ({ comment }) => {
       setAllComments((prev) => [...prev, comment]);
       setInput("");
-
     };
     if (socket) {
       socket.on("comment-post-success", handlePostComment);
@@ -97,7 +96,7 @@ export default function CommentModel({ comment }) {
                   src={comment?.media}
                   className="w-100 h-100"
                   controls
-                  type="vid eo/mp4"
+                  type="video/mp4"
                   onError={(e) => console.error("Video Error:", e.target.error)}
                 />
               </div >
@@ -108,7 +107,7 @@ export default function CommentModel({ comment }) {
         {/* Right Side: Comments Section */}
         {
           !comment.showOnlyProfile &&
-          <div className={`v-border col-lg-7 col-md-6 col-12 position-relative d-lg-flex h-100  flex-column ${comment.on !== "comment" || comment.showOnlyProfile && "d-none col-0"}`}>
+          <div className={`v-border col-lg-7 col-md-6 col-12 position-relative d-lg-flex h-100  flex-column ${(comment.on != "comment" || comment.showOnlyProfile) && "d-none col-0"}`}>
             <h3 className="text-white px-3 pt-2">{allComments.length} Comments</h3>
             {/* Comments List */}
             <div className="  h-100">

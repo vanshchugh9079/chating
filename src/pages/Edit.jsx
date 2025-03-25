@@ -111,7 +111,7 @@ export default function EditProfile() {
         <div className="m-0 p-0 d-flex justify-content-center align-items-center w-100 h-100 model-container">
             <FontAwesomeIcon
                 icon={faMultiply}
-                className="text-white fs-2 position-absolute end-0 top-0 me-5 mt-3 pointer"
+                className="text-white fs-2 position-absolute end-0 top-0 me-2 mt-3 pointer"
                 onClick={() => dispatch(setShowEditModel(false))}
             />
             <div className="card p-4 shadow-lg" style={{ width: "400px", borderRadius: "20px", height: "400px" }}>

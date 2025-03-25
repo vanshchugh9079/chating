@@ -21,9 +21,9 @@ const MessageList = () => {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       console.log(chats.data.data.length);
-      
+
       setAllChat(() => {
         let prevChat = chats.data.data.map((c) => {
           c.people.forEach((people) => {
@@ -32,7 +32,7 @@ const MessageList = () => {
             }
           });
           console.log(c);
-          
+
           return c;
         });
         return prevChat;
@@ -89,7 +89,7 @@ const MessageList = () => {
 
   useEffect(() => {
     console.log(name);
-    
+
     getChat();
   }, []);
 
@@ -97,7 +97,7 @@ const MessageList = () => {
     <div className="profile-container p-2 border-0 m-0 position-relative">
       <div className="header m-0 p-0 border-box">
         <h2 className='ms-2  ' >{name}</h2>
-        <span className="edit-icon" onClick={()=>{
+        <span className="edit-icon" onClick={() => {
           dispatch(setShowEditModel(true))
         }}>&#9998;</span>
       </div>
@@ -116,23 +116,23 @@ const MessageList = () => {
         <span className='me-auto'>Messages</span>
         <span className='ms-auto'>Requests</span>
       </div>
-      <div className="chat-list-container p-2 d-flex flex-column-reverse">
+      <div className="chat-list-container d-flex flex-column m-lg-0   ">
         {allChat.length > 0 ? allChat.map((chat, id) => (
           <>
-          <div className={`m-0 p-0 btn w-100 mt-2 ${(chat.name==="chat with ai" || id===0) && "d-none"}`} key={id} onClick={() => navigate(`/message/${chat?._id}`)}>
-            <div className="d-flex v-border position-relative">
-              <img src={chat?.avatar?.url} alt="User Avatar" className="message-avatar" />
-              <p className='text-white fw-bold ms-1 fs-6 mt-auto mb-auto me-auto'>{chat?.name}</p>
-              {/* <div className='position-absolute end-0 d-flex align-items-center h-100'>
+            <div className={`m-0  btn w-100 p-2 p-lg-0 ${(chat.name === "chat with ai" || id === 0) && "d-none"}`} key={id} onClick={() => navigate(`/message/${chat?._id}`)}>
+              <div className="d-flex v-border position-relative">
+                <img src={chat?.avatar?.url} alt="User Avatar" className="message-avatar" />
+                <p className='text-white fw-bold ms-1 fs-6 mt-auto mb-auto me-auto'>{chat?.name}</p>
+                {/* <div className='position-absolute end-0 d-flex align-items-center h-100'>
                 <div className={`text-success online ${!chat?.isOnline && "d-none"} fw-bold me-3`}></div>
               </div> */}
+              </div>
             </div>
-          </div>
           </>
         )) : <p className='text-secondary'>No messages found.</p>}
       </div>
-      <div className='  bottom-lg-0 d-flex justify-content-end position-absolute fixed-bottom    p-0 border-box  mb-lg-3 mb-5 me-5 justify-content-lg-center w-100 '>
-        <button className="new-chat-button me-2 m-lg-0 " onClick={() => {
+      <div className='   d-flex justify-content-end    bottom-0 mb-5 bottom-lg-0 position-fixed      p-0 border-box  w-100 '>
+        <button className="new-chat-button ms-2 ms-lg-5  me-auto " onClick={() => {
           dispatch(setShowMessageModel(true))
         }}>
           + New Chat
