@@ -7,6 +7,7 @@ import { getYourStory, storyAdd } from "./src/socket/storyController.js";
 import { likedController } from "./src/socket/likedController.js";
 import { commentOnPost, commentOnReel } from "./src/socket/commentController.js";
 import { aiChat } from "./src/socket/aiChat.js";
+import { callAccept, callController, callOnAccept } from "./src/socket/callController.js";
 // Environment variables
 const PORT = process.env.PORT || 4000;
 
@@ -40,8 +41,8 @@ const startServer = async () => {
       socket.on("register", (id) => {
         registerUser(socket, allUser, id);
       })
-      socket.on("message",({chatId,content})=>{
-        messageUser(socket, allUser, chatId,content);
+      socket.on("message",({chatId,content,attachment})=>{
+        messageUser(socket, allUser, chatId,content,attachment);
       })
       socket.on("create-chat",(chat)=>{
         createChat(socket,allUser,chat)
@@ -76,6 +77,15 @@ const startServer = async () => {
       })
       socket.on("comment-reel",(obj)=>{
           commentOnReel(socket,allUser,obj.post,obj.id,obj.content)
+      })
+      socket.on("call",(obj)=>{
+        callController(socket,allUser,obj.reciverId,obj.id)
+      })
+      socket.on("call-accept",(obj)=>{
+        callAccept(socket,allUser,obj.callId,obj.accepted)
+      })
+      socket.on("send-offer",(obj)=>{
+        callOnAccept(socket,allUser,obj.callId,obj.offer)
       })
       // Event: disconnect
       socket.on("disconnect", (reason) => {

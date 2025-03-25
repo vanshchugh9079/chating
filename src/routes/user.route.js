@@ -6,6 +6,7 @@ import getUser from "../controller/user/getUser.js";
 import getProfile from "../controller/Profile/getProfile.js";
 import tockenCheck from "../middleware/tokenCheck.js";
 import searchUser from "../controller/user/searchUser.js";
+import update from "../controller/user/update.js";
 let router=Router();
 router.post("/create",upload.single("avatar"),register)
 router.post("/login",login)
@@ -13,4 +14,6 @@ router.post("/login",login)
 // router.get("/",getUser)
 router.get("/search/:name",tockenCheck,searchUser)
 router.get("/profile/:name",tockenCheck,getProfile)
+router.put("/update",upload.single("avatar"),tockenCheck,update)
+
 export default router;

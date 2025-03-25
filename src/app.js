@@ -10,6 +10,7 @@ import chatRoute from "./routes/chatRoute.js"
 import notificationRoute from "./routes/notificationRoute.js"
 import storyRoute from "./routes/storyRoute.js"
 import commentRoute from "./routes/commentRoute.js"
+import uploadRoute from "./routes/uploadRoute.js"
 let app = express();
 // setup  Middleware
 app.use(express.json());
@@ -31,4 +32,5 @@ app.use("/api/chat",chatRoute)
 app.use("/api/notification",notificationRoute)
 app.use("/api/story",storyRoute)
 app.use("/api/comment",commentRoute)
+app.use("/api/upload",uploadRoute)
 export default app;

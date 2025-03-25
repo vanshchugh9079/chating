@@ -17,6 +17,8 @@ const cloudinaryUpload = async (element) => {
     const filePath = element.path;
     const fileName = element.filename;
     const fileExtension = path.extname(fileName).toLowerCase();
+    console.log(fileExtension);
+    
     let type;
 
     // Determine file type based on file extension

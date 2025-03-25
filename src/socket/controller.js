@@ -2,6 +2,12 @@ import Chat from "../models/Chat.js";
 import Message from "../models/Message.js";
 import User from "../models/User.js";
 import Notification from "../models/Notification.js";
+import multer from "multer";
+import { upload } from "../middleware/multer.js";
+import fs from "fs"
+import path from "path";
+import { fileTypeFromBuffer } from "file-type"
+import { cloudinaryUpload } from "../utils/cloudniaryUpload.js";
 /**
  * Registers a user with their socket ID.
  * @param {Socket} socket - The connected socket instance.
@@ -9,32 +15,32 @@ import Notification from "../models/Notification.js";
  * @param {string} id - The unique ID of the user.
  */
 
-const registerUser = async(socket, allUser, id) => {
+const registerUser = async (socket, allUser, id) => {
   allUser.set(id, socket.id);
-  let user=await User.findById(id).populate("follower");
-  if(!user){
+  let user = await User.findById(id).populate("follower");
+  if (!user) {
     console.log("user not found")
-    ;
+      ;
     return;
   }
-  if(user){
-    user.isOnline=true;
+  if (user) {
+    user.isOnline = true;
   }
   await user.save();
-  user.follower.forEach((friend)=>{
-    let socketId=allUser.get(friend._id.toString());
-    if(socketId){
-      socket.to(socketId).emit("online",user)
+  user.follower.forEach((friend) => {
+    let socketId = allUser.get(friend._id.toString());
+    if (socketId) {
+      socket.to(socketId).emit("online", user)
     }
   })
-  socket.on("disconnect", async() => {
+  socket.on("disconnect", async () => {
     allUser.delete(id);
-    user.isOnline=false;
+    user.isOnline = false;
     await user.save()
-    user.follower.forEach((friend)=>{
-      let socketId=allUser.get(friend._id.toString());
-      if(socketId){
-        socket.to(socketId).emit("offline",user)
+    user.follower.forEach((friend) => {
+      let socketId = allUser.get(friend._id.toString());
+      if (socketId) {
+        socket.to(socketId).emit("offline", user)
       }
     })
   });
@@ -47,7 +53,9 @@ const registerUser = async(socket, allUser, id) => {
  * @param {string} chatId - The ID of the chat room.
  * @param {string} content - The message content.
  */
-const messageUser = async (socket, allUser, chatId, content) => {
+const messageUser = async (socket, allUser, chatId, content, attachment) => {
+  console.log(attachment);
+  
   try {
     const chat = await Chat.findById(chatId).populate("people");
     if (!chat || !chat.people.length) {
@@ -55,12 +63,14 @@ const messageUser = async (socket, allUser, chatId, content) => {
       return;
     }
 
+
     const sender = Array.from(allUser.entries()).find(([, val]) => val === socket.id)?.[0];
     if (!sender) {
       console.error("Sender not found");
       return;
     }
     let { name: sendName } = await User.findById(sender)
+    
     let notification = await Notification.create({
       type: "message",
       content: sendName + "create new message",
@@ -70,8 +80,12 @@ const messageUser = async (socket, allUser, chatId, content) => {
       content,
       createdBy: sender,
       chat: chatId,
+      attachment:{
+        url: attachment?.url || null,
+        public_id: attachment?.public_id || null
+      }
     });
-     message=await Message.findById(message._id).populate("createdBy");
+    message = await Message.findById(message._id).populate("createdBy");
     chat.message.push(message._id);
     await chat.save();
     chat.people.forEach((user) => {
@@ -135,8 +149,8 @@ const follow = async (socket, allUser, userId, id) => {
       type: "follow",
       content: `${you.name} started following you`,
       user: userId,
-      on:"profile",
-      profile:you._id
+      on: "profile",
+      profile: you._id
     })
     user.notification.push(notification)
     await user.save();
@@ -170,8 +184,8 @@ const unFollow = async (socket, allUser, userId, id) => {
       type: "information",
       content: `${you.name} unfollow  you`,
       user: you._id,
-      on:"profile",
-      profile:you._id
+      on: "profile",
+      profile: you._id
     })
     user.notification.push(notification)
     await user.save();
@@ -214,12 +228,12 @@ const sendRequest = async (socket, allUser, userId, id) => {
       type: "request",
       content: `${you.name} request  you`,
       user: you._id,
-      on:"profile",
-      profile:you._id
+      on: "profile",
+      profile: you._id
     })
     user.notification.push(notification._id)
     await user.save();
-     notification = await Notification.findById(notification._id).populate("user");
+    notification = await Notification.findById(notification._id).populate("user");
     socket.to(allUser.get(userId)).emit("follow-request", {
       user: you,
       notification: notification
@@ -251,20 +265,20 @@ const acceptRequest = async (socket, allUser, userId, id, accept) => {
       type: "information",
       content: `${you.name} ${accept ? "accepted" : "rejected"} your follow request`,
       user: userId,
-      on:"profile",
-      profile:you._id,
+      on: "profile",
+      profile: you._id,
     });
 
     // Remove the original request notification
     you.notification = you.notification.filter(
       (e) => !(e.type === "request" && e.user.toString() === userId)
     );
-    let yourNotification=await Notification.findOne({type:"request",user:userId}).populate("user");
+    let yourNotification = await Notification.findOne({ type: "request", user: userId }).populate("user");
     await Notification.findOneAndDelete({ type: "request", user: userId });
 
     if (!accept) {
       // Handle rejection case
-      
+
       you.request = you.request.filter((reqId) => reqId.toString() !== userId);
       await you.save();
 
@@ -274,7 +288,7 @@ const acceptRequest = async (socket, allUser, userId, id, accept) => {
       });
       socket.emit("decline-request-success", {
         user,
-        notification:yourNotification,
+        notification: yourNotification,
       });
       return;
     }
@@ -287,7 +301,7 @@ const acceptRequest = async (socket, allUser, userId, id, accept) => {
     user.following.push(id);
     user.notification.push(notification);
     await user.save();
-    
+
     socket.to(allUser.get(userId)).emit("accept-request", {
       user: you,
       notification,
@@ -298,20 +312,20 @@ const acceptRequest = async (socket, allUser, userId, id, accept) => {
     });
     socket.emit("accept-request-success", {
       user,
-      notification:yourNotification,
+      notification: yourNotification,
     });
   } catch (error) {
     console.error("Error in acceptRequest function:", error.message);
     socket.emit("error", { message: "Failed to process request." });
   }
 };
-const readNoti=async(socket,data)=>{
-  data.forEach(async(noti)=>{
-    let notification=await Notification.findById(noti._id).populate("user")
-    notification.seen=true
-    data.seen=true;
+const readNoti = async (socket, data) => {
+  data.forEach(async (noti) => {
+    let notification = await Notification.findById(noti._id).populate("user")
+    notification.seen = true
+    data.seen = true;
     await notification.save()
   })
-  socket.emit("read-notification",data)
+  socket.emit("read-notification", data)
 }
-export { registerUser, messageUser, createChat, follow, unFollow, sendRequest, acceptRequest,readNoti };
+export { registerUser, messageUser, createChat, follow, unFollow, sendRequest, acceptRequest, readNoti };

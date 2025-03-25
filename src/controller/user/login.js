@@ -4,31 +4,44 @@ import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import errorHandler from "../../utils/errorHandler.js";
 import jsonResponse from "../../utils/jsonResponse.js";
+import cloudinary from "cloudinary";
 
 let login = async (req, res) => {
-    try {
         let { by, type, email, name, phone, password, avatar } = req.body;
         let enterSource = name || email || phone;
         let user;
 
-        // If logging in with Google
+        // Google Login Flow
         if (by === "google") {
-            user = await User.findOne({ email: email });
+            if (!email || !name) {
+                throw new ApiError(400, "Google login failed: Missing required fields.");
+            }
+
+            user = await User.findOne({ email });
             console.log("Google Login User:", user);
 
             if (!user) {
-                if (!email || !name) {
-                    throw new ApiError(400, "Google login failed: Missing required fields.");
-                }
+                let uploadedResult = null;
 
+                if (avatar) {
+                    try {
+                        const result = await cloudinary.uploader.upload(avatar);
+                        uploadedResult = {
+                            public_id: result.public_id,
+                            url: result.secure_url,
+                        };
+                    } catch (uploadError) {
+                        console.error("Cloudinary Upload Error:", uploadError);
+                        throw new ApiError(500, "Avatar upload failed.");
+                    }
+                }
                 let userObj = {
                     email,
                     name,
                     password: "", // Google users don’t need a password
-                    phone: phone || "",
                     type: type?.toLowerCase() || "public",
                     isOnline: true,
-                    avatar: { public_id: Date.now(), url: avatar || "" }, // Ensure avatar is set
+                    avatar: uploadedResult, // Ensure avatar is set
                 };
 
                 const newUser = await User.create(userObj);
@@ -47,20 +60,15 @@ let login = async (req, res) => {
 
                 let data = await jsonResponse(newUser);
                 const response = new ApiResponse(data, 200, "User created successfully");
-                res.cookie("token", response.data.token);
+                res.cookie("token", response.data.token, { httpOnly: true, secure: true, sameSite: "Strict" });
                 return res.status(200).json(response);
             }
         }
 
-        
-        // Non-Google login
+        // Non-Google Login Flow
         if (by !== "google") {
-            if (!enterSource) {
-                throw new ApiError(400, "Please enter a name, email, or phone number.");
-            }
-            if (!password) {
-                throw new ApiError(400, "Please enter a password.");
-            }
+            if (!enterSource) throw new ApiError(400, "Please enter a name, email, or phone number.");
+            if (!password) throw new ApiError(400, "Please enter a password.");
         }
 
         // Find user by email, name, or phone
@@ -76,17 +84,12 @@ let login = async (req, res) => {
                 path: "savedReel",
                 populate: { path: "comment", populate: { path: "createdBy" } },
             });
+        if (!user) throw new ApiError(404, "User not found.");
 
-        if (!user) {
-            throw new ApiError(404, "User not found.");
-        }
-
-        // If password-based login, verify password
+        // Verify password for non-Google logins
         if (by !== "google") {
             let isPasswordMatch = await user.comparePassword(password);
-            if (!isPasswordMatch) {
-                throw new ApiError(401, "Invalid password.");
-            }
+            if (!isPasswordMatch) throw new ApiError(401, "Invalid password.");
         }
 
         // Set user as online
@@ -97,12 +100,8 @@ let login = async (req, res) => {
         let sanitizedUser = await jsonResponse(user);
         let response = new ApiResponse(sanitizedUser, 200, "Login successful");
 
-        res.cookie("token", response.data.token);
+        res.cookie("token", response.data.token, { httpOnly: true, secure: true, sameSite: "Strict" });
         return res.status(200).json(response);
-    } catch (error) {
-        console.error("Login Error:", error);
-        return res.status(error.statusCode || 500).json({ error: error.message || "Internal Server Error" });
-    }
 };
 
 export default errorHandler(login);

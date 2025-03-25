@@ -19,8 +19,6 @@ let schema = new Schema({
     },
     phone: {
         type: String, // Changed to String for better control over format
-        unique:true,
-        default:null,
         sparse:true
     },
     password: {
@@ -103,7 +101,6 @@ schema.pre("save", async function (next) {
 
 // Compare passwords
 schema.methods.comparePassword = async function (password) {
-    if(!this.password) return true;
     return await bcrypt.compare(password, this.password);
 };
 

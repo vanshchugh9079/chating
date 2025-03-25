@@ -39,10 +39,16 @@ const register = async (req, res) => {
         }
 
         let uploadResult;
-        if (!file) {
-            cloudinary.uploader.upload(avatar, function (error, result) {
-                console.log(result);
+        if (!file && avatar) {
+            let result=await cloudinary.uploader.upload(avatar, function (error) {
+                if (error) {
+                    console.log(error);
+                }
             });
+            uploadResult = {
+                public_id: result.public_id,
+                url: result.secure_url
+            }
         }
         if (file) {
             try {
