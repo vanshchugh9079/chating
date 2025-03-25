@@ -25,7 +25,6 @@ export default function Call() {
         }
         let handleGetOffer=(obj)=>{
             console.log(obj);
-            
             setOffer(obj.offer)
         }
         socket.on("get-offer",handleGetOffer)
