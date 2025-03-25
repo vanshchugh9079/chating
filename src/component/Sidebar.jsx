@@ -17,7 +17,7 @@ import { api } from '../contant';
 import NotificationBar from './NotificationBar';
 import { setUserData } from '../redux/slice/user.slice';
 import popup from '../model/popup';
-import { parseNullDef } from 'openai/_vendor/zod-to-json-schema/index.mjs';
+import { setCall, setShowCall, setWho } from '../redux/slice/callSlice';
 
 const Sidebar = () => {
   const dispatch = useDispatch();
@@ -125,7 +125,27 @@ const Sidebar = () => {
         setAllNotification((prev) => prev.filter((e) => e._id !== data.notification._id));
       };
       const handleRead = (data) => data && setAllNotification(data);
-
+      let handleCall = (data) => {
+        console.log(data);
+        navigate("/")
+        dispatch(setShowCall(true))
+        dispatch(setCall(data))
+      }
+      let handleCallEnded = (data) => {
+        dispatch(setShowCall(false))
+      }
+      let handleMakeCall = (call) => {
+        console.log(call);
+        dispatch(setShowCall(true))
+        navigate("/")
+        if(call.sender==user._id){
+          dispatch(setWho("sender"))
+        }
+        else{
+          dispatch(setWho("receiver"))
+        }
+        dispatch(setCall(call))
+      }
       socket.on("unfollow", handleNotification);
       socket.on("follow", handleNotification);
       socket.on('message-recieved', handleMessageReceived);
@@ -136,6 +156,10 @@ const Sidebar = () => {
       socket.on("accept-request-success", handleYourNotification);
       socket.on("decline-request-success", handleYourNotification);
       socket.on("read-notification", handleRead);
+      socket.on("recieving-call", handleCall)
+      socket.on("call-ended", handleCallEnded)
+      socket.on("make-call", handleMakeCall)
+      socket.on("recieving-call", handleMakeCall)
 
       return () => {
         socket.off('message-recieved', handleMessageReceived);
@@ -148,6 +172,10 @@ const Sidebar = () => {
         socket.off("read-notification", handleRead);
         socket.off("liked-post", handleNotification);
         socket.off("comment-post", handleNotification)
+        socket.off("recieving-call", handleCall)
+        socket.off("call-ended", handleCallEnded)
+        socket.off("make-call", handleMakeCall)
+
       };
     }
   }, [socket]);

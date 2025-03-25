@@ -4,6 +4,10 @@
     margin: 0;
     padding: 0;
 }
+.message-attachment{
+    height: 200px !important;
+    width: 200px !important;
+}
 .is-code{
     /* font-weight:bold !important; */
     text-wrap: wrap !important;
@@ -111,10 +115,75 @@ footer {
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+/* 🎤 Recorder Box */
+.audio-recorder-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #222;
+    padding: 10px;
+    border-radius: 10px;
+    margin: 10px;
+    width: 100%;
+    max-width: 300px;
+    box-shadow: 0px 4px 8px rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+/* 🔊 Live Wave Animation */
+.wave-animation {
+    display: flex;
+    gap: 5px;
+}
+
+.wave-animation span {
+    display: block;
+    width: 5px;
+    height: 15px;
+    background: #4CAF50;
+    animation: wave 1s infinite ease-in-out;
+}
+
+.wave-animation span:nth-child(2) { animation-delay: 0.2s; }
+.wave-animation span:nth-child(3) { animation-delay: 0.4s; }
+.wave-animation span:nth-child(4) { animation-delay: 0.6s; }
+.wave-animation span:nth-child(5) { animation-delay: 0.8s; }
+
+@keyframes wave {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(2); }
+}
+
+/* ⏹️ Stop Button */
+.stop-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    transition: 0.3s ease;
+}
+
+.stop-btn:hover {
+    color: red;
+    transform: scale(1.2);
+}
+
 .emoji-icon {
     cursor: pointer;
     font-size: 1.5rem;
     margin-right: 8px;
+}
+.v-call{
+    width: 40px !important;
+    height: 40px !important;
+    background-color: #383838;
+    justify-content: center !important;
+    align-items: center !important;
+    display: flex;
+    border-radius: 50% !important;
+}
+.v-call *{
+    display:inline !important;
 }
 .sender{
     color: red !important;

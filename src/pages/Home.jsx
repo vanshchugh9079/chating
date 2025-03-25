@@ -6,25 +6,30 @@ import { Outlet } from 'react-router-dom';
 import MessageModel from '../component/MessageModel';
 import SearchBar from '../component/SearchBar';
 import StoryShower from '../component/StoryShower';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import CommentModel from '../component/CommentModel';
 import BottomSidebar from '../component/BottomSidebar';
-import { faBell, faMessage } from '@fortawesome/free-solid-svg-icons';
+import EditProfile from './Edit';
 function Home() {
   let story = useSelector((state) => state.story)
   let { showComment, comment } = useSelector((state) => state.comment)
+  let { showEditModel } = useSelector(state => state.edit)
   return (
     <div className="app bg-black">
       <Sidebar />
       <div className='w-100 bg-black ' style={{
         backgroundColor: "black"
       }}>
-        
+
         <Outlet />
         <BottomSidebar />
       </div>
       <CreateModal />
       <MessageModel />
+      {
+        showEditModel &&
+        <EditProfile />
+      }
       {
         story.showStory &&
         <StoryShower name={story.name} media={story.media} avatar={story.avatar} you={story.you} />

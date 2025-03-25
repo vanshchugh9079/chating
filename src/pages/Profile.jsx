@@ -4,9 +4,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSave, faTableCells, faUser, faVideo } from '@fortawesome/free-solid-svg-icons';
 import getProfile from '../fetch/getProfile';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useSocket } from '../socket/SocketContext.jsx'
 import { setComment, setShowComment } from '../redux/slice/commentSlice.js';
+import { setShowEditModel } from '../redux/slice/editSlice.js';
 const DEFAULT_AVATAR = '/default-avatar.png';
 const DEFAULT_POST = '/default-post.png';
 const Profile = () => {
@@ -17,6 +18,7 @@ const Profile = () => {
   const [showAccept, setShowAccept] = useState(false);
   const [current, setCurrent] = useState("post");
   const [reels, setReels] = useState([]);
+  let navigate=useNavigate()
   const [user, setUser] = useState({
     _id: "",
     avatar: { url: '' },
@@ -109,7 +111,9 @@ const Profile = () => {
         <div className="profile-info m-0">
           <div className="d-flex ms-lg-5 m-0">
             <h1 className="username d-inline m-0 p-0">{user.name}</h1>
-            <button className={`edit-button ms-3 ${name !== param.name && "d-none"}  m-0`}>Edit profile</button>
+            <button className={`edit-button ms-3 ${name !== param.name && "d-none"}  m-0`} onClick={()=>{
+              dispatch(setShowEditModel(true))
+            }}>Edit profile</button>
             <button className={`edit-button ms-3 ${!youFollow && "d-none"}  m-0`}>message</button>
             <button className={`edit-button ms-3 ${!youFollow && "d-none"}  m-0`} onClick={() => {
               socket.emit("unfollow", {

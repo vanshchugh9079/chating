@@ -134,10 +134,10 @@ function LoginComponent() {
             onSuccess={handleGoogleLogin}
             onError={() => console.log("Google login failed")}
           />
-          <a href="/forgot-password" className="forgot-password-link d-block">
+          <a href="/forgot-password" className="forgot-password-link d-block mt-3">
             Forgot password?
           </a>
-          <div className="signup">
+          <div className="signup mt-3">
             <span>Don't have an account? </span>
             <Link to="/signup">Sign up</Link>
           </div>

@@ -6,7 +6,6 @@
   padding: 0rem 1.25rem 0rem 1.25rem;
   color: #fff;
 }
-
 .login-title {
   font-family: 'Instagram', sans-serif;
   font-size: 50px;
@@ -80,7 +79,11 @@
   color: #0095f6;
   text-decoration: none;
 }
-
+@media screen and (max-width:900px) {
+  .google-login-button iframe {
+    width: 70% !important;
+  }
+}
 @media screen and (min-width:991px) {
   .login-container {
     border: 2px solid grey;

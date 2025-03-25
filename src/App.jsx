@@ -13,6 +13,7 @@ import MessageShower from "./component/MessageShower";
 import SearchBar from "./component/SearchBar";
 import ChatBox from "./component/ChatBox";
 import Explore from "./pages/Explore";
+import Edit from "./pages/Edit";
 
 export default function App() {
   const user = useSelector((state) => state.user || {});

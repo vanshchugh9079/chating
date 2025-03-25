@@ -15,6 +15,7 @@ import BottomSidebar from './BottomSidebar';
 import { SidebarItem } from './Sidebar';
 import { faBell, faMessage } from '@fortawesome/free-solid-svg-icons';
 import { showMessage, showNoti } from '../redux/slice/showMobileNotification';
+import Call from './Call';
 
 function MainContent() {
   const storiesRef = useRef(null);
@@ -32,9 +33,10 @@ function MainContent() {
   const [messageNoti, setMessageNoti] = useState(0);
   const [allNotification, setAllNotification] = useState([]);
   const [showNotificationBar, setShowNotificationBar] = useState(false);
+  const showCall = useSelector((state) => state.call.showCall)
   let postId = searchParams.get("id");
   const postRefs = useRef({});
-  let navigate=useNavigate();
+  let navigate = useNavigate();
   const handleNavigation = useCallback((path, adjustWidth = false) => {
     if (showNotificationBar) {
       socket.emit("read-notification", allNotification);
@@ -126,10 +128,10 @@ function MainContent() {
 
     fetchNotifications();
   }, []);
-  
+
   // Fetch posts on mount
   useEffect(() => {
-    fetchPost(user.token, dispatch,navigate);
+    fetchPost(user.token, dispatch, navigate);
   }, [user.token, dispatch]);
 
   // Fetch stories
@@ -246,7 +248,13 @@ function MainContent() {
   }, [updateScrollButtons]);
 
   return (
-    <div className='w-100  vh-100 '>
+    <div className='w-100 position-relative  vh-100 '>
+      {
+        showCall  &&
+        <div className='position-fixed z-plus bg-black w-100 h-100 '>
+          <Call />
+        </div>
+      }
       <div className=' d-flex  align-items-center   mb-0 bg-secondory    d-lg-none text-white'>
         <div className='d-flex justify-content-center align-items-center bg-secondory '>
           <h1 className='insta-text fw-bold mt-2 ms-1'>Chat Fight</h1>
@@ -312,9 +320,7 @@ function MainContent() {
                   dispatch(setShowStory(true));
                 }
               }}>
-                <img src={user.avatar.url} onLoad={()=>{
-                  dispatch(setAvatar(user.avatar.url));
-                }} alt="user" className="w-100 h-100 rounded-circle" />
+                <img src={user.avatar.url} alt="user" className="w-100 h-100 rounded-circle" />
                 <div className='mt-2 p-2 text-white rounded-circle  v-plus end-0 rounded-circle'>
                   <h6 className="fs-3 text-white mt-1">+</h6>
                 </div>

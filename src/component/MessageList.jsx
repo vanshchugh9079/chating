@@ -6,6 +6,7 @@ import { api } from '../contant';
 import { useNavigate } from 'react-router-dom';
 import { useSocket } from '../socket/SocketContext';
 import { setShowMessageModel } from '../redux/slice/showMessageModel';
+import { setShowEditModel } from '../redux/slice/editSlice';
 
 const MessageList = () => {
   let { name, token, _id } = useSelector(state => state.user.user);
@@ -20,6 +21,9 @@ const MessageList = () => {
           'Authorization': `Bearer ${token}`
         }
       });
+      
+      console.log(chats.data.data.length);
+      
       setAllChat(() => {
         let prevChat = chats.data.data.map((c) => {
           c.people.forEach((people) => {
@@ -27,6 +31,8 @@ const MessageList = () => {
               c = { ...c, isOnline: true };
             }
           });
+          console.log(c);
+          
           return c;
         });
         return prevChat;
@@ -67,7 +73,10 @@ const MessageList = () => {
       socket.on("offline", handleOffline);
       socket.on("online", handleOnline);
       socket.on("chat-created", (data) => {
-        setAllChat((prevChat) => [data, ...prevChat]);
+        setAllChat((prevChat) => {
+          prevChat.push(data);
+          return prevChat;
+        });
       });
 
       return () => {
@@ -76,7 +85,7 @@ const MessageList = () => {
         socket.off("offline", handleOffline);
       };
     }
-  }, [socket, setAllChat]);
+  }, [socket, allChat]);
 
   useEffect(() => {
     console.log(name);
@@ -87,8 +96,10 @@ const MessageList = () => {
   return (
     <div className="profile-container p-2 border-0 m-0 position-relative">
       <div className="header m-0 p-0 border-box">
-        <h2 className='ms-2  ' >{name} <span className="dropdown">&#9662;</span></h2>
-        <span className="edit-icon">&#9998;</span>
+        <h2 className='ms-2  ' >{name}</h2>
+        <span className="edit-icon" onClick={()=>{
+          dispatch(setShowEditModel(true))
+        }}>&#9998;</span>
       </div>
 
       <div className=''>
@@ -105,10 +116,10 @@ const MessageList = () => {
         <span className='me-auto'>Messages</span>
         <span className='ms-auto'>Requests</span>
       </div>
-      <div className="chat-list-container p-2">
+      <div className="chat-list-container p-2 d-flex flex-column-reverse">
         {allChat.length > 0 ? allChat.map((chat, id) => (
           <>
-          <div className={`m-0 p-0 btn w-100 mt-2 ${chat.name==="chat with ai" && "d-none"}`} key={id} onClick={() => navigate(`/message/${chat?._id}`)}>
+          <div className={`m-0 p-0 btn w-100 mt-2 ${(chat.name==="chat with ai" || id===0) && "d-none"}`} key={id} onClick={() => navigate(`/message/${chat?._id}`)}>
             <div className="d-flex v-border position-relative">
               <img src={chat?.avatar?.url} alt="User Avatar" className="message-avatar" />
               <p className='text-white fw-bold ms-1 fs-6 mt-auto mb-auto me-auto'>{chat?.name}</p>
@@ -121,7 +132,7 @@ const MessageList = () => {
         )) : <p className='text-secondary'>No messages found.</p>}
       </div>
       <div className='  bottom-lg-0 d-flex justify-content-end position-absolute fixed-bottom    p-0 border-box  mb-lg-3 mb-5 me-5 justify-content-lg-center w-100 '>
-        <button className="new-chat-button me-2    m-lg-0    " onClick={() => {
+        <button className="new-chat-button me-2 m-lg-0 " onClick={() => {
           dispatch(setShowMessageModel(true))
         }}>
           + New Chat

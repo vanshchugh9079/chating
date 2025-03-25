@@ -15,6 +15,9 @@ import showStoryModel from "../redux/slice/showStoryModel.js";
 import youStory from "../redux/slice/yourStory.js";
 import comment from "../redux/slice/commentSlice.js";
 import showNoti from "../redux/slice/showMobileNotification.js";
+import editSilce from "../redux/slice/editSlice.js";
+import callSlice from "../redux/slice/callSlice.js";
+
 
 // Combine all reducers
 const rootReducer = combineReducers({
@@ -30,6 +33,8 @@ const rootReducer = combineReducers({
     yourStory: youStory,
     comment: comment,
     showNoti: showNoti, // Persisted slice
+    edit:editSilce,
+    call:callSlice
 });
 
 // Persist configuration
