@@ -20,7 +20,6 @@ const persistConfig = {
     key: "user",
     storage,
 };
-
 const persistedReducer = persistReducer(persistConfig, userSlice.reducer);
 
 export const { setUserData } = userSlice.actions;

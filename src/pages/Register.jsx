@@ -50,6 +50,8 @@ function Register() {
       const response = await api.post("/user/create", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+      console.log(response);
+      
 
       if (response.status === 200) {
         dispatch(setUserData({ user: response.data.data, loggedIn: true }));

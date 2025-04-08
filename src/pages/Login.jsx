@@ -8,6 +8,7 @@ import { jwtDecode } from "jwt-decode";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { setUserData } from '../redux/slice/user.slice';
 import { useDispatch } from 'react-redux';
+import { Spinner } from 'react-bootstrap';
 
 const GOOGLE_CLIENT_ID = "229496418318-afjba1k375e43lv4c4ji08ht8e76pei3.apps.googleusercontent.com";
 
@@ -15,6 +16,7 @@ function LoginComponent() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [gb, setGb] = useState(null);
+  const [showLoader, setShowLoader] = useState(false);
   const [credentials, setCredentials] = useState({
     username: '',
     password: '',
@@ -42,7 +44,6 @@ function LoginComponent() {
         phone: credentials.phone,
         type: credentials.type,
         avatar: credentials.avatar,
-
       });
 
       await popup("success", "You logged in successfully", "", false, 5000);
@@ -58,13 +59,14 @@ function LoginComponent() {
 
   // Trigger login when Google login sets credentials
   useEffect(() => {
-    if(gb){
+    if (gb) {
       handleSubmit()
     }
   }, [gb]);
 
   // Handle Google login
   const handleGoogleLogin = async (response) => {
+    setShowLoader(true)
     try {
       const decodedUser = jwtDecode(response.credential);
       setCredentials({
@@ -77,8 +79,10 @@ function LoginComponent() {
         avatar: decodedUser.picture,
       });
       setGb(response)
+      setShowLoader(false)
     } catch (error) {
       console.error("Google Login Error:", error);
+      setShowLoader(false);
     }
   };
 
@@ -121,19 +125,32 @@ function LoginComponent() {
               onChange={handleChange}
               className="form-input"
             />
-            <button type="submit" className="login-button">
-              Log in
-            </button>
+            {
+              showLoader && 
+              <div className='d-flex justify-content-center'>
+                <Spinner variant='danger' className='fs-2'/>
+              </div>
+            }
+            {
+              !showLoader &&
+              <button type="submit" className="login-button">
+                Log in
+              </button>
+            }
+
           </form>
           <div className="or-container">
             <div className="or-line"></div>
             <span className="or-text">OR</span>
             <div className="or-line"></div>
           </div>
-          <GoogleLogin
-            onSuccess={handleGoogleLogin}
-            onError={() => console.log("Google login failed")}
-          />
+          {
+            !showLoader &&
+            <GoogleLogin
+              onSuccess={handleGoogleLogin}
+              onError={() => console.log("Google login failed")}
+            />
+          }
           <a href="/forgot-password" className="forgot-password-link d-block mt-3">
             Forgot password?
           </a>

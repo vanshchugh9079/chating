@@ -194,9 +194,7 @@ const MessageShower = () => {
         let content = message.trim();
         setShowEmojiPicker(false);
         setMessage("");
-
         let attachment = null;
-
         if (file) {
             let formData = new FormData();
             formData.append("file", file);

@@ -20,7 +20,6 @@ function Home() {
       <div className='w-100 bg-black ' style={{
         backgroundColor: "black"
       }}>
-
         <Outlet />
         <BottomSidebar />
       </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import "../css/sidebar.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -18,6 +18,7 @@ import NotificationBar from './NotificationBar';
 import { setUserData } from '../redux/slice/user.slice';
 import popup from '../model/popup';
 import { setCall, setShowCall, setWho } from '../redux/slice/callSlice';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Sidebar = () => {
   const dispatch = useDispatch();
@@ -32,8 +33,38 @@ const Sidebar = () => {
   const [current, setCurrent] = useState("home");
   const [prev, setPrev] = useState();
   const [isOpen, setIsOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const sidebarRef = useRef(null);
 
   const socket = useSocket();
+
+  // Handle window resize for mobile detection
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 992);
+      if (window.innerWidth >= 992) {
+        setShowMobileMenu(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+        setShowMobileMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   let handleBorder = () => {
     if (!current) return;
@@ -45,7 +76,8 @@ const Sidebar = () => {
       if (prevElement) prevElement.classList.remove("active");
       setPrev(current);
     }
-  }
+  };
+
   const goNotification = useCallback(() => {
     const isMessagePage = location.pathname.includes("message");
     if (showNotificationBar) {
@@ -59,6 +91,7 @@ const Sidebar = () => {
     }
     setDecreaseWidth(!showNotificationBar);
   }, [allNotification, location.pathname, showNotificationBar, socket]);
+
   const handleNavigation = useCallback((path, adjustWidth = false) => {
     if (adjustWidth) setDecreaseWidth(true);
     if (showNotificationBar) {
@@ -66,8 +99,9 @@ const Sidebar = () => {
       setNotifications(0);
     }
     setShowNotificationBar(false);
+    if (isMobile) setShowMobileMenu(false);
     navigate(path);
-  }, [allNotification, navigate, showNotificationBar, socket]);
+  }, [allNotification, navigate, showNotificationBar, socket, isMobile]);
 
   useEffect(() => {
     setDecreaseWidth(location.pathname.includes("message"));
@@ -78,9 +112,11 @@ const Sidebar = () => {
       setCurrent("v-profile");
     }
   }, [location]);
+
   useEffect(() => {
     handleBorder()
   }, [current, location])
+
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -175,132 +211,136 @@ const Sidebar = () => {
         socket.off("recieving-call", handleCall)
         socket.off("call-ended", handleCallEnded)
         socket.off("make-call", handleMakeCall)
-
       };
     }
   }, [socket]);
 
-  const sidebarClass = classNames('bg-black  d-none d-lg-block sidebar', {
+  const sidebarClass = classNames('bg-black d-none d-lg-block sidebar', {
     'w-25': !decreaseWidth,
     'sidebar-dec': decreaseWidth,
   });
 
+  const mobileSidebarClass = classNames('mobile-sidebar bg-black', {
+    'open': showMobileMenu,
+  });
+
+  const toggleMobileMenu = () => {
+    setShowMobileMenu(!showMobileMenu);
+  };
+
+  const sidebarVariants = {
+    open: { x: 0, transition: { type: 'spring', stiffness: 300, damping: 30 } },
+    closed: { x: '-100%', transition: { type: 'spring', stiffness: 300, damping: 30 } }
+  };
+
   return (
     <>
-      <Row className="m-0 p-0 ">
+      {/* Mobile Hamburger Menu Button */}
+      {isMobile && (
+        <motion.button 
+          className="mobile-menu-button"
+          onClick={toggleMobileMenu}
+          whileTap={{ scale: 0.9 }}
+          aria-label="Toggle menu"
+        >
+          <FontAwesomeIcon icon={faBars} size="lg" />
+        </motion.button>
+      )}
+
+      {/* Desktop Sidebar */}
+      <Row className="m-0 p-0 d-none d-lg-flex">
         <div className={sidebarClass}>
           {!decreaseWidth ? (
-            <h2>Chat Fight</h2>
+            <motion.h2 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              Chat Fight
+            </motion.h2>
           ) : (
-            <img src={logo} alt="logo" className="m-0 p-0 d-inline bg-black logo-img" width={50} height={50} />
+            <motion.img 
+              src={logo} 
+              alt="logo" 
+              className="m-0 p-0 d-inline bg-black logo-img" 
+              width={50} 
+              height={50}
+              whileHover={{ scale: 1.1 }}
+            />
           )}
 
-          <ul className="d-flex flex-column gap-3 p-0 m-0 ">
-            <div className='home '>
-              <SidebarItem
-                icon={faHouse}
-                label="Home"
-                decreaseWidth={decreaseWidth}
+          <ul className="d-flex flex-column gap-3 p-0 m-0">
+            {[
+              { icon: faHouse, label: "Home", path: "/", className: "home" },
+              { icon: faMagnifyingGlass, label: "Search", path: "/search", className: "search" },
+              { icon: faCompass, label: "Explore", path: "/explore", className: "explore" },
+              { icon: faVideo, label: "Reels", path: "/reel", className: "reels" },
+              { 
+                icon: faMessage, 
+                label: "Message", 
+                path: "/message", 
+                className: "message",
+                badge: messageNoti > 0 ? messageNoti : null,
+                adjustWidth: true
+              },
+              { 
+                icon: faBell, 
+                label: "Notification", 
+                path: null, 
+                className: "notification",
+                badge: notifications > 0 ? notifications : null,
+                onClick: goNotification
+              },
+              { 
+                icon: faUser, 
+                label: "Profile", 
+                path: `/profile/${user?.name || 'guest'}`, 
+                className: "v-profile" 
+              },
+              { 
+                icon: faPlus, 
+                label: "Create", 
+                path: null, 
+                className: "create",
+                onClick: () => dispatch(setShowModel(false))
+              },
+            ].map((item, index) => (
+              <div 
+                key={index} 
+                className={item.className}
                 onClick={() => {
-                  setCurrent("home");
-                  handleNavigation("/")
+                  setCurrent(item.className);
+                  if (item.onClick) {
+                    item.onClick();
+                  } else if (item.path) {
+                    handleNavigation(item.path, item.adjustWidth);
+                  }
                 }}
-              />
-            </div>
-            <div className='search'>
-              <SidebarItem
-                icon={faMagnifyingGlass}
-                label="Search"
-                decreaseWidth={decreaseWidth}
-                onClick={() => {
-                  setCurrent("search")
-                  handleNavigation("/search")
-                }}
-              />
-            </div>
-            <div className='explore' onClick={() => {
-              setCurrent("explore")
-              handleNavigation("/explore")
-            }}>
-              <SidebarItem
-                icon={faCompass}
-                label="Explore"
-                decreaseWidth={decreaseWidth}
-              />
-            </div>
-            <div className='reels'>
-              <SidebarItem
-                icon={faVideo}
-                label="Reels"
-                decreaseWidth={decreaseWidth}
-                onClick={() => {
-                  setCurrent("reels")
-                  handleNavigation("/reel")
-                }}
-              />
-            </div>
-            <div className='message'>
-              <div className="notification-icon m-0 p-0">
+              >
                 <SidebarItem
-                  icon={faMessage}
-                  label="message"
+                  icon={item.icon}
+                  label={item.label}
                   decreaseWidth={decreaseWidth}
-                  onClick={() => {
-                    setCurrent("message")
-                    handleNavigation("/message", true);
-                    setShowNotificationBar(false);
-                  }}
                 >
-                  {messageNoti > 0 && (
-                    <span className="notification-badge-message m-0 p-0">{messageNoti}</span>
+                  {item.badge && (
+                    <motion.span 
+                      className={`notification-badge${item.className === 'message' ? '-message' : ''} m-0 p-0`}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+                    >
+                      {item.badge}
+                    </motion.span>
                   )}
                 </SidebarItem>
               </div>
-            </div>
-            <div className='notification'>
-              <div className="notification-icon m-0 p-0">
-                <SidebarItem
-                  icon={faBell}
-                  label="Notification"
-                  decreaseWidth={decreaseWidth}
-                  onClick={() => {
-                    setCurrent("notification")
-                    goNotification();
-                  }}
-                >
-                  {notifications > 0 && (
-                    <span className="notification-badge m-0 p-0">{notifications}</span>
-                  )}
-                </SidebarItem>
-              </div>
-            </div>
-            <div className='v-profile'>
-              <SidebarItem
-                icon={faUser}
-                label="Profile"
-                decreaseWidth={decreaseWidth}
-                onClick={() => {
-                  setCurrent("v-profile")
-                  handleNavigation(`/profile/${user?.name || 'guest'}`)
-                }}
-              />
-            </div>
-            <div className='create'>
-              <SidebarItem
-                icon={faPlus}
-                label="Create"
-                decreaseWidth={decreaseWidth}
-                onClick={() => {
-                  setCurrent("create")
-                  dispatch(setShowModel(false))
-                }}
-              />
-            </div>
-            <Dropdown className="v-dd mt-1 ">
+            ))}
+
+            <Dropdown className="v-dd mt-1">
               <Dropdown.Toggle
                 variant="black"
                 id="dropdown-basic"
-                className="text-white d-flex align-items-center gap-2 p-0 "
+                className="text-white d-flex align-items-center gap-2 p-0"
                 onMouseEnter={(e) => e.preventDefault()}
                 aria-label="More Options"
               >
@@ -308,9 +348,9 @@ const Sidebar = () => {
                 {!decreaseWidth && <span>More</span>}
               </Dropdown.Toggle>
 
-              <Dropdown.Menu className="shadow  w-25  v-drop-item     ">
+              <Dropdown.Menu className="shadow w-25 v-drop-item">
                 <Dropdown.Item
-                  className="text-danger  fw-bold   "
+                  className="text-danger fw-bold"
                   onClick={() =>
                     popup("warning", "Are you sure to log out?", "", true, 10000000, true, dispatch, navigate)
                   }
@@ -322,26 +362,148 @@ const Sidebar = () => {
           </ul>
         </div>
       </Row>
-      <NotificationBar showBar={showNotificationBar} setShowBar={setShowNotificationBar} setDecresWidth={setDecreaseWidth} notifications={allNotification} allNotification={allNotification} setNotifications={setNotifications} />
+
+      {/* Mobile Sidebar */}
+      <AnimatePresence>
+        {isMobile && showMobileMenu && (
+          <motion.div
+            className={mobileSidebarClass}
+            initial="closed"
+            animate="open"
+            exit="closed"
+            variants={sidebarVariants}
+            ref={sidebarRef}
+          >
+            <div className="mobile-sidebar-header">
+              <img src={logo} alt="logo" className="logo-img" width={50} height={50} />
+              <h2>Chat Fight</h2>
+            </div>
+
+            <ul className="mobile-sidebar-menu">
+              {[
+                { icon: faHouse, label: "Home", path: "/", className: "home" },
+                { icon: faMagnifyingGlass, label: "Search", path: "/search", className: "search" },
+                { icon: faCompass, label: "Explore", path: "/explore", className: "explore" },
+                { icon: faVideo, label: "Reels", path: "/reel", className: "reels" },
+                { 
+                  icon: faMessage, 
+                  label: "Message", 
+                  path: "/message", 
+                  className: "message",
+                  badge: messageNoti > 0 ? messageNoti : null
+                },
+                { 
+                  icon: faBell, 
+                  label: "Notification", 
+                  path: null, 
+                  className: "notification",
+                  badge: notifications > 0 ? notifications : null,
+                  onClick: goNotification
+                },
+                { 
+                  icon: faUser, 
+                  label: "Profile", 
+                  path: `/profile/${user?.name || 'guest'}`, 
+                  className: "v-profile" 
+                },
+                { 
+                  icon: faPlus, 
+                  label: "Create", 
+                  path: null, 
+                  className: "create",
+                  onClick: () => dispatch(setShowModel(false))
+                },
+              ].map((item, index) => (
+                <motion.li
+                  key={index}
+                  className={item.className}
+                  onClick={() => {
+                    setCurrent(item.className);
+                    if (item.onClick) {
+                      item.onClick();
+                    } else if (item.path) {
+                      handleNavigation(item.path);
+                    }
+                  }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <SidebarItem
+                    icon={item.icon}
+                    label={item.label}
+                    decreaseWidth={false}
+                    forMobile={true}
+                  >
+                    {item.badge && (
+                      <span className={`notification-badge${item.className === 'message' ? '-message' : ''}`}>
+                        {item.badge}
+                      </span>
+                    )}
+                  </SidebarItem>
+                </motion.li>
+              ))}
+
+              <motion.li
+                className="logout-item"
+                onClick={() => popup("warning", "Are you sure to log out?", "", true, 10000000, true, dispatch, navigate)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <FontAwesomeIcon icon={faBars} className="me-2" />
+                <span>Log Out</span>
+              </motion.li>
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Overlay for mobile menu */}
+      {isMobile && showMobileMenu && (
+        <div 
+          className="mobile-menu-overlay"
+          onClick={() => setShowMobileMenu(false)}
+        />
+      )}
+
+      <NotificationBar 
+        showBar={showNotificationBar} 
+        setShowBar={setShowNotificationBar} 
+        setDecresWidth={setDecreaseWidth} 
+        notifications={allNotification} 
+        allNotification={allNotification} 
+        setNotifications={setNotifications} 
+      />
     </>
   );
 };
 
 const SidebarItem = ({ icon, label, decreaseWidth, onClick, forMobile, children }) => (
-  <li
+  <motion.li
     className="fs-6 d-flex align-items-center position-relative"
     onClick={onClick}
     role="button"
-
     tabIndex={0}
     onKeyDown={(e) => e.key === 'Enter' && onClick && onClick()}
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.95 }}
   >
     <div className="notification-icon">
-      <FontAwesomeIcon icon={icon} className={`me-2 ${forMobile && "fs-2 ms-auto me-auto mb-auto mt-auto"}`} />
+      <FontAwesomeIcon 
+        icon={icon} 
+        className={`me-2 ${forMobile && "fs-2 ms-auto me-auto mb-auto mt-auto"}`} 
+      />
       {children}
     </div>
-    {!decreaseWidth && <span>{label}</span>}
-  </li>
+    {!decreaseWidth && (
+      <motion.span
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        {label}
+      </motion.span>
+    )}
+  </motion.li>
 );
 
 SidebarItem.propTypes = {
@@ -350,6 +512,7 @@ SidebarItem.propTypes = {
   decreaseWidth: PropTypes.bool,
   onClick: PropTypes.func,
   children: PropTypes.node,
+  forMobile: PropTypes.bool,
 };
 
 SidebarItem.defaultProps = {
@@ -357,7 +520,8 @@ SidebarItem.defaultProps = {
   decreaseWidth: false,
   onClick: () => { },
   children: null,
+  forMobile: false,
 };
 
 export default Sidebar;
-export { SidebarItem }
+export { SidebarItem };
