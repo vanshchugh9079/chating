@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback,useMemo } from 'react';
 import '../css/mainContent.css';
 import Post from './Post';
 import Story from './Story';
@@ -75,6 +75,8 @@ function MainContent() {
 
   // Track scroll direction with improved performance
   useEffect(() => {
+    console.log("git update succesfully");
+    
     const handleScroll = () => {
       const currentScrollPos = mainContentRef.current?.scrollTop || 0;
       setScrollingUp(currentScrollPos < lastScrollPos);
