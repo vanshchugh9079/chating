@@ -4,7 +4,7 @@ let url="http://192.168.29.73:3000/api";
 const api = axios.create({
   baseURL: url,  // Replace with your base URL
   headers: {
-    'Content-Type': 'application/json,'
+    'Content-Type': 'application/json'
   },
 });
 export {api}
