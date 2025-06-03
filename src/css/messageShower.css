@@ -1,0 +1,415 @@
+/* src/ProfilePage.css */
+*{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+.message-attachment{
+    height: 200px !important;
+    width: 200px !important;
+}
+.is-code{
+    /* font-weight:bold !important; */
+    text-wrap: wrap !important;
+    overflow-x: hidden !important;
+    max-width: 97% !important;
+}
+.v-profile-page {
+    height: 100vh !important ;
+    width: 100% !important ;
+    margin: 0 !important;
+    padding: 0 !important;
+    background-color: #000;
+    color: #fff;
+    border: grey 1px solid !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    border-right: none !important;
+    max-height: 100vh !important;
+}
+
+.profile {
+    width: 50px;
+    height: 50px;
+    border-radius: 50% !important;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    height: 9.5% !important;
+    border-bottom: 1px solid grey !important;
+}
+
+
+.message-box{
+    height: 74.9vh;
+    border-bottom: 1px solid grey !important;
+}
+.message-box::-webkit-scrollbar {
+    width: 8px; /* Wider for better accessibility */
+    background-color: #f0f0f0; /* Light background for contrast */
+}
+
+.message-box::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #6a6a6a, #383838); /* Smooth gradient */
+    border-radius: 10px; /* Rounded edges for a modern look */
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2); /* Adds depth */
+    transition: background 0.3s ease; /* Smooth hover transition */
+}
+
+.message-box::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #555555, #222222); /* Darker on hover */
+}
+
+.message-box::-webkit-scrollbar-track {
+    background: #e0e0e0; /* Slightly darker track for better contrast */
+    border-radius: 10px; /* Match the thumb's radius */
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+footer {
+    height: 15% !important;
+}
+
+.input-container {
+    display: flex;
+    align-items: center;
+    background-color: #000;
+    border-radius: 25px;
+    padding: 10px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 0 5px grey;
+}
+
+.emoji-icon {
+    font-size: 24px;
+    margin-right: 10px;
+    color: #fff;
+}
+
+.message-input {
+    border: none;
+    background: none;
+    outline: none;
+    color: #fff;
+    font-size: 16px;
+    width: 100%;
+}
+
+.message-input::placeholder {
+    color: #bbb;
+}
+.message{
+    max-width: 50% !important;
+    height: max-content  !important;
+}
+.emoji-picker {
+    position: absolute;
+    bottom: 50px; /* Adjust based on your footer height */
+    left: 10px; /* Position relative to the input */
+    z-index: 1000;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+/* 🎤 Recorder Box */
+.audio-recorder-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #222;
+    padding: 10px;
+    border-radius: 10px;
+    margin: 10px;
+    width: 100%;
+    max-width: 300px;
+    box-shadow: 0px 4px 8px rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+/* 🔊 Live Wave Animation */
+.wave-animation {
+    display: flex;
+    gap: 5px;
+}
+
+.wave-animation span {
+    display: block;
+    width: 5px;
+    height: 15px;
+    background: #4CAF50;
+    animation: wave 1s infinite ease-in-out;
+}
+
+.wave-animation span:nth-child(2) { animation-delay: 0.2s; }
+.wave-animation span:nth-child(3) { animation-delay: 0.4s; }
+.wave-animation span:nth-child(4) { animation-delay: 0.6s; }
+.wave-animation span:nth-child(5) { animation-delay: 0.8s; }
+
+@keyframes wave {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(2); }
+}
+
+/* ⏹️ Stop Button */
+.stop-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    transition: 0.3s ease;
+}
+
+.stop-btn:hover {
+    color: red;
+    transform: scale(1.2);
+}
+
+.emoji-icon {
+    cursor: pointer;
+    font-size: 1.5rem;
+    margin-right: 8px;
+}
+.v-call{
+    width: 40px !important;
+    height: 40px !important;
+    background-color: #383838;
+    justify-content: center !important;
+    align-items: center !important;
+    display: flex;
+    border-radius: 50% !important;
+}
+.v-call *{
+    display:inline !important;
+}
+.sender{
+    color: red !important;
+}
+.message-receiver {
+    position: relative;
+    background: #1e1e1e;
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 12px;
+    max-width: 70%;
+}
+
+/* Bird-like tail for left messages */
+.message-receiver::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: -10px;
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-right: 10px solid #1e1e1e;
+    transform: translateY(-50%);
+}
+
+/* Make sure messages from sender don't have a tail */
+.message-sender {
+    background: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 12px;
+    max-width: 70%;
+}
+
+/* Ensure text inside message bubbles aligns well */
+.message p {
+    margin: 0;
+    font-size: 14px;
+}
+/* General message wrapper */
+.message-wrapper {
+    position: relative;
+    max-width: 70%;
+    padding: 10px 15px;
+    border-radius: 12px;
+    display: inline-block;
+}
+
+/* Styling for received messages (with beak) */
+.receiver {
+    background: #1e1e1e;
+    color: #fff;
+    margin-left: 10px;
+    border-radius: 12px;
+}
+
+/* Left-side bird beak effect */
+.receiver::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: -10px;
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-right: 10px solid #1e1e1e;
+    transform: translateY(-50%);
+}
+
+/* Sender messages (normal) */
+.img-container{
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.sender {
+    background: #007bff;
+    color: white !important;
+    margin-right: 10px;
+    border-radius: 12px;
+}
+
+/* Message text */
+.message {
+    margin: 0;
+    font-size: 14px;
+}
+.v-message{
+    margin: 0;
+    width: fit-content;
+}
+.cross{
+    transition: tranform 0.2s ease;
+}
+.cross:hover{
+    transform: scale(1.1) !important;
+}
+/* Sender name for group messages */
+.sender-name {
+    font-size: 12px;
+    font-weight: bold;
+    color: #bbb;
+    margin-bottom: 3px;
+}
+
+.input-container {
+    display: flex;
+    align-items: center;
+    position: relative;
+    width: 100%;
+}
+.profile-center{
+    width: 70px;
+    height: 70px;
+    border-radius: 50% !important;
+}
+/* Responsive Styles */
+@media screen and (max-width: 768px) {
+    .profile {
+        width: 40px;
+        height: 40px;
+    }
+
+    .profile-page {
+        padding: 0 10px;
+    }
+
+    .message-box {
+        min-height: 75vh !important;
+    }
+
+    .input-container {
+        width: 90%;
+        max-width: 100%;
+    }
+
+    .message-wrapper {
+        max-width: 85%;
+    }
+
+    .message-sender,
+    .message-receiver {
+        max-width: 80%;
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+
+    .message-receiver::before {
+        left: -8px;
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+        border-right: 8px solid #1e1e1e;
+    }
+
+    .sender {
+        margin-right: 5px;
+    }
+
+    .receiver {
+        margin-left: 5px;
+    }
+
+    .sender-name {
+        font-size: 10px;
+    }
+
+    .profile-center {
+        width: 60px;
+        height: 60px;
+    }
+}
+
+/* Mobile Styles */
+@media screen and (max-width: 480px) {
+    .profile {
+        width: 35px;
+        height: 35px;
+    }
+
+    .message-box {
+        border-bottom: 0 !important;
+        min-height: 75vh;
+        max-height: 75vh !important;
+    }
+    .input-container {
+        width: 100%;
+        padding: 8px;
+    }
+   
+
+    .emoji-icon {
+        font-size: 20px;
+    }
+
+    .message-input {
+        font-size: 14px;
+    }
+
+    .message-wrapper {
+        max-width: 90%;
+    }
+
+    .message-sender,
+    .message-receiver {
+        max-width: 85%;
+        font-size: 13px;
+        padding: 6px 10px;
+    }
+
+    .message-receiver::before {
+        left: -6px;
+        border-top: 6px solid transparent;
+        border-bottom: 6px solid transparent;
+        border-right: 6px solid #1e1e1e;
+    }
+
+    .sender-name {
+        font-size: 9px;
+    }
+
+    .profile-center {
+        width: 50px;
+        height: 50px;
+    }
+}

@@ -1,0 +1,33 @@
+.reel-content{
+    overflow-y: auto !important;
+    max-height: 100vh !important;
+}
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+.reel-content::-webkit-scrollbar {
+    background-color: grey;
+    width: 3px;
+}
+
+
+.reel-content::-webkit-scrollbar-thumb {
+    background-color: white;
+    border-radius: 50px;
+    transition: background-color 0.3s ease-in-out;
+    opacity: 0.5;
+    border: 2px solid white;
+}
+
+@media screen and (max-width: 900px) {
+    .reel-content {
+        max-height: calc(100vh - 50px) !important; /* Adjust based on navbar height */
+        object-fit: contain !important; /* Ensures full content is visible */
+        display: block;
+        /* margin: auto; */
+        background-color: black !important; /* Optional: Adds padding effect */
+    }
+    
+}

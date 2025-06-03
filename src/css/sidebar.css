@@ -1,0 +1,126 @@
+.sidebar {
+    width: 100% !important;
+    background-color: #000;
+    color: #fff;
+    height: 100vh;
+    border-right:1px solid gray;
+    transition: width 0.5s ease-in-out;
+    overflow-y: hidden !important;
+    z-index: 1000 !important;
+    overflow-x: hidden !important;
+  }
+  .z-plus{
+    z-index: 1000000000000000000000 !important;
+  }
+  .circle{
+  height: 50px !important;
+  width: 50px !important;
+  border: 2px solid white !important;
+  border-radius: 50%;
+}
+  .sidebar{
+    transition: all 0.2s ease-in;
+  }
+  .sidebar-item:hover{
+    transform: scale(1.1);
+    cursor: pointer;
+  }
+  .bottom-nav{
+    /* margin: 0 !important; */
+    padding: 0 !important;
+    margin-bottom: auto !important;
+    list-style: none !important;
+    
+  }
+
+  .bottom-nav>li{
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .logo-img{
+    height: 50px;
+    width: 50px;
+    border-radius: 50%;
+    background-color: #fff;
+    margin-bottom: 20px !important;
+    align-self: flex-start;
+    position: relative;
+    right: 14px !important;
+  }
+  .sidebar-dec{
+    overflow-x: hidden !important;
+    width: 55px !important;
+  }
+  .sidebar h2 {
+    font-family: 'Instagram';
+    margin-bottom: 20px;
+  }
+  
+  .sidebar ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  .active{
+    color: blue !important ;
+  }
+
+  li{
+    padding: 0 !important;
+    padding-top: 1.5vh !important;
+    margin: 0 !important;
+  }
+  .notification-badge {
+    position: absolute;
+    background-color: #ff3b30; /* Red color */
+    color: white;
+    font-size: 12px; /* Adjust font size */
+    width: 18px; /* Circular badge */
+    height: 18px;
+    border-radius: 50%; /* Makes it a circle */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+  }
+  .notification-badge-message {
+    top: -6px;
+    left: 5px !important;
+    position: absolute;
+    background-color: #ff3b30; /* Red color */
+    color: white;
+    font-size: 12px; /* Adjust font size */
+    width: 20px; /* Circular badge */
+    height: 20px;
+    border-radius: 50%; /* Makes it a circle */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+  }
+  .notification-icon {
+    margin:0px ;
+    position: relative;
+    display: inline-block; /* To contain the badge */
+  }
+  
+  
+  .sidebar li {
+    margin-bottom: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+  }
+  .v-drop-item{
+    max-width: 50px !important;
+    overflow-x: hidden !important;
+  }
+  .sidebar li:hover {
+    color: #888;
+  }
+  .logo-container{
+    height: 50px !important;
+    width: 50px !important;
+  }

@@ -1,0 +1,129 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 1050;
+}
+.cross{
+  z-index: 100000 !important;
+}
+
+.modal-content-comment {
+  width: 80%;
+  max-width: 900px;
+  height: 80% ;
+  border-radius: 10px;
+  margin-bottom: auto !important;
+  margin-top: auto !important;
+}
+.modal-content-profile {
+  width: max-content;
+  max-width:80% !important;
+  height: 80% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 10px !important
+}
+
+.img-parent {
+  position: relative;
+}
+
+.v-img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.v-border {
+  border-right: 1px solid #333;
+}
+.v-upper{
+  z-index: 1000 !important;
+}
+.all-comment {
+  overflow-y: auto;
+  height: 100% !important;
+  max-height: 75% !important;
+  padding: 10px;
+}
+.all-comments{
+  overflow-y: scroll !important;
+  max-height: 75% !important;
+}
+
+.all-comments::-webkit-scrollbar{
+  background-color: rgb(156, 156, 156) !important;
+  width: 5px !important;
+}
+
+.all-comments::-webkit-scrollbar-thumb{
+  background-color: white;
+  border-radius: 50px;
+}
+
+.comment-box {
+  padding: 10px;
+  border-bottom: 1px solid #333;
+}
+
+.message-avatar {
+  width: 40px;
+  height: 40px;
+}
+
+.comment-box .text-white.fs-6 {
+  margin: 0;
+}
+
+.comment-box .text-white.fs-6:first-child {
+  font-weight: bold;
+}
+
+.form-control {
+  background-color: #2a2a2a;
+  border: none;
+  color: white;
+}
+
+.form-control:focus {
+  background-color: #2a2a2a;
+  color: white;
+  box-shadow: none;
+}
+.date{
+  color: #aaa;
+}
+
+input::placeholder {
+  color: #aaa !important;
+}
+.v-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain; /* Ensures image/video fits properly */
+}
+
+.video-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 !important;
+}
+
+.video-container video {
+  width: 100%;
+  height: 100%; /* Maintains aspect ratio */
+  max-height: 100%; /* Ensures video does not overflow */
+  object-fit: cover; /* Adjusts cropping while keeping aspect ratio */
+}
+
+
+.position-absolute.end-0.bottom-0.w-100.h-25.d-flex.align-items-center {
+  padding: 10px;
+  background-color: #1a1a1a;
+}

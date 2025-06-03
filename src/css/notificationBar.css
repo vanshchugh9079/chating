@@ -1,0 +1,43 @@
+.bar-close {
+    transform: translate(-40vw);
+    display: hidden !important;
+    transition: transform 0.5s ease;
+}
+.bar {
+    z-index: 100 !important;
+    left: 58px !important;
+    width: 20vw !important;
+    overflow-y: auto !important;
+    scroll-behavior: smooth !important;
+    border-right: 2px solid grey;
+}
+.bar::-webkit-scrollbar{
+    background-color: grey;
+    width: 3px;
+  }
+  .bar::-webkit-scrollbar-thumb{
+    background-color: white;
+    border-radius: 50px;
+    transition: background-color 0.3s ease-in-out;
+    opacity: 0.5;
+    border: 2px solid white;
+  }
+.bar-open {
+    transform: translatex(0vw);
+    transition: transform 0.5s ease;
+}
+.notification-box{
+    transition: all 0.2s ease-in;
+}
+.notification-box:hover{
+    background-color: rgba(128, 128, 128, 0.824);
+    border-radius: 40px;
+}
+.bar-mobile{
+    width: 100vw !important;
+    left: 0 !important;
+    z-index: 100000000000000000 !important;
+    transform: translatex(0vw);
+    transition: transform 0.5s ease !important;
+    border: 0px !important;
+}
