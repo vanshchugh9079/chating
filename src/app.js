@@ -11,11 +11,18 @@ import notificationRoute from "./routes/notificationRoute.js"
 import storyRoute from "./routes/storyRoute.js"
 import commentRoute from "./routes/commentRoute.js"
 import uploadRoute from "./routes/uploadRoute.js"
+import helmet from 'helmet';
 let app = express();
+
+app.use(helmet({
+  crossOriginOpenerPolicy: false,
+  crossOriginEmbedderPolicy: false,
+}));
+
 // setup  Middleware
 app.use(express.json());
 app.use(cors({
-    origin:"*",
+    origin:"https://chatfight.netlify.app",
     credentials: true
 }))
 app.use(cookieParser())

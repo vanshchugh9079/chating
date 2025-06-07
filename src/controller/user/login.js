@@ -10,7 +10,11 @@ let login = async (req, res) => {
         let { by, type, email, name, phone, password, avatar } = req.body;
         let enterSource = name || email || phone;
         let user;
-
+    console.log(name);
+    console.log(phone);
+    console.log(email);
+    
+    
         // Google Login Flow
         if (by === "google") {
             if (!email || !name) {
