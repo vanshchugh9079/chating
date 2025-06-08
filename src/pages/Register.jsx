@@ -175,9 +175,9 @@ function Register() {
           />
         ))}
         
-        <div className={`login-glass-container ${shake ? 'shake' : ''}  h-100`} style={{ maxHeight: '98vh' }}>
+        <div className={`login-glass-container ${shake ? 'shake' : ''}  `} style={{ maxHeight: '99.5vh' }}>
           <div className="custom-scroll-container" style={{ 
-            maxHeight: '88vh', 
+            maxHeight: '89.5vh', 
             overflowY: 'auto',
             paddingRight: '8px' // Add padding to prevent content from being hidden behind scrollbar
           }}>
