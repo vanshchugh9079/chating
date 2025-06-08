@@ -15,7 +15,7 @@ const Dropzone = ({setAvatar}) => {
     const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: 'image/' });
 
     return (
-        <div {...getRootProps()} className="p-0 " style={{
+        <div {...getRootProps()} className="p-0 d-flex flex-column justify-content-center align-items-center " style={{
             border: "2px solid white",
         }}>
             {

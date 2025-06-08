@@ -146,7 +146,7 @@
 }
 
 .login-glass-container{
-  transform: scale(0.9);
+  transform: scale(0.9) !important;
 }
 .login-glass-container:hover {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);

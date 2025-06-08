@@ -160,7 +160,7 @@ function Register() {
         `}
       </style>
       
-      <div className="login-background w-100 h-100">
+      <div className="login-background w-100 h-100 ">
         {bubbles.map(bubble => (
           <div 
             key={bubble.id}
@@ -175,9 +175,9 @@ function Register() {
           />
         ))}
         
-        <div className={`login-glass-container ${shake ? 'shake' : ''} w-75 h-auto`} style={{ maxHeight: '90vh' }}>
+        <div className={`login-glass-container ${shake ? 'shake' : ''}  h-100`} style={{ maxHeight: '98vh' }}>
           <div className="custom-scroll-container" style={{ 
-            maxHeight: '80vh', 
+            maxHeight: '88vh', 
             overflowY: 'auto',
             paddingRight: '8px' // Add padding to prevent content from being hidden behind scrollbar
           }}>
