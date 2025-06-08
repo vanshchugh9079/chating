@@ -23,8 +23,8 @@ const ChatBubble = ({ style }) => {
   if (!visible) return null;
 
   return (
-    <div 
-      className="chat-bubble" 
+    <div
+      className="chat-bubble"
       style={{
         position: 'absolute',
         background: 'rgba(255, 255, 255, 0.1)',
@@ -70,6 +70,7 @@ function LoginComponent() {
   }, []);
 
   const handleChange = (e) => {
+    setShake(false)
     const { name, value } = e.target;
     setCredentials((prev) => ({ ...prev, [name]: value }));
     setError(null); // Clear error when user types
@@ -81,12 +82,13 @@ function LoginComponent() {
   };
 
   const handleSubmit = useCallback(async () => {
-    if (!credentials.username || !credentials.password) {
-      setError('Please fill in all fields');
-      triggerErrorAnimation();
-      return;
+    if (credentials.by != "google") {
+      if (!(credentials.username || credentials.email || credentials.phone) && !credentials.password) {
+        setError('Please fill in all fields');
+        triggerErrorAnimation();
+        return;
+      }
     }
-
     setLoading(true);
     setError(null);
 
@@ -117,7 +119,7 @@ function LoginComponent() {
   }, [credentials, dispatch, navigate]);
 
   useEffect(() => {
-    if(gb){
+    if (gb) {
       handleSubmit();
     }
   }, [gb, handleSubmit]);
@@ -146,7 +148,7 @@ function LoginComponent() {
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <div className="login-background w-100 h-100">
         {bubbles.map(bubble => (
-          <div 
+          <div
             key={bubble.id}
             className="falling-bubble"
             style={{
@@ -158,18 +160,18 @@ function LoginComponent() {
             }}
           />
         ))}
-        
-        <div className={`login-glass-container ${shake ? 'shake' : ''} w-75 h-75` }>
+
+        <div className={`login-glass-container ${shake ? 'shake' : ''} w-75 h-75`}>
           <h1 className="login-title">Welcome Back</h1>
           <p className="login-subtitle">Sign in to continue your conversation</p>
-          
+
           {error && (
             <div className="error-box">
               <div className="error-icon">!</div>
               <div className="error-message">{error}</div>
             </div>
           )}
-          
+
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -192,7 +194,7 @@ function LoginComponent() {
                 Username or Email
               </label>
             </div>
-            
+
             <div className="form-group">
               <input
                 id="password"
@@ -207,7 +209,7 @@ function LoginComponent() {
                 Password
               </label>
             </div>
-            
+
             <button type="submit" className="login-button text-center" disabled={loading}>
               <span className="button-text text-center ms-auto me-auto">
                 {loading ? (
@@ -221,13 +223,13 @@ function LoginComponent() {
               {!loading && <span className="button-icon">→</span>}
             </button>
           </form>
-          
+
           <div className="or-container">
             <div className="or-line"></div>
             <span className="or-text">OR</span>
             <div className="or-line"></div>
           </div>
-          
+
           <div className="social-login">
             <GoogleLogin
               onSuccess={handleGoogleLogin}
@@ -240,7 +242,7 @@ function LoginComponent() {
               shape="pill"
             />
           </div>
-          
+
           <div className="login-footer">
             <a href="/forgot-password" className="forgot-password-link">
               Forgot password?

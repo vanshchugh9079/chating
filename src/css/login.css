@@ -104,7 +104,6 @@
     opacity: 1;
   }
 }
-
 /* Shake animation */
 .shake {
   animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
@@ -146,6 +145,9 @@
   transition: all 0.3s ease;
 }
 
+.login-glass-container{
+  transform: scale(0.9);
+}
 .login-glass-container:hover {
   transform: translateY(-5px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
