@@ -13,7 +13,7 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
+  width: 100% !important;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.9);
   z-index: 1000;
@@ -227,10 +227,8 @@
 
 @media (min-width: 992px) {
   .main-content-container {
-    margin-left: 250px; /* Account for desktop sidebar */
     padding-bottom: 0;
   }
-  
   .mobile-header {
     display: none;
   }
