@@ -228,7 +228,7 @@ const Sidebar = () => {
 
   return (
     <>
-      <Row className="m-0 p-0">
+      <Row className="m-0 p-0 w-25">
         <div className={sidebarClass}>
           {!isMobile && (
             <div className="sidebar-header">
