@@ -259,7 +259,7 @@ function MainContent() {
   }, [updateScrollButtons]);
 
   return (
-    <div className='main-content-container w-75'>
+    <div className='main-content-container w-100'>
       <AnimatePresence>
         {showCall && (
           <motion.div 
