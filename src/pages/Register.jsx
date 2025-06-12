@@ -93,6 +93,20 @@ function Register() {
       window.localStorage.setItem("token", response?.data?.data?.token);
       navigate("/");
     } catch (error) {
+      // dispatch(setUserData({
+      //   user:{
+      //     name:"vansh",
+      //     email:"vanshchugh67@ggmail.com",
+      //     password:"a1s1d1f1g1",
+      //     avatar:{
+      //       url:"https://st3.depositphotos.com/9998432/13335/v/450/depositphotos_133352156-stock-illustration-default-placeholder-profile-icon.jpg",
+      //     },
+      //     phone:"90899677178",
+      //     token:"etuiqgu34ihiguhqi"
+      //   },
+      //   loggedIn:true
+      // }))
+      // navigate("/")
       console.error("Registration Error:", error);
       const errorMsg = error?.response?.data?.message || "Registration failed";
       setError(errorMsg);
