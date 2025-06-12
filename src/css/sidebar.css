@@ -1,126 +1,223 @@
-.sidebar {
-    width: 100% !important;
-    background-color: #000;
-    color: #fff;
-    height: 100vh;
-    border-right:1px solid gray;
-    transition: width 0.5s ease-in-out;
-    overflow-y: hidden !important;
-    z-index: 1000 !important;
-    overflow-x: hidden !important;
-  }
-  .z-plus{
-    z-index: 1000000000000000000000 !important;
-  }
-  .circle{
-  height: 50px !important;
-  width: 50px !important;
-  border: 2px solid white !important;
-  border-radius: 50%;
+/* Base Styles */
+.sidebar-container {
+  position: fixed;
+  height: 100vh;
+  background-color: #121212;
+  color: white;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
-  .sidebar{
-    transition: all 0.2s ease-in;
-  }
-  .sidebar-item:hover{
-    transform: scale(1.1);
-    cursor: pointer;
-  }
-  .bottom-nav{
-    /* margin: 0 !important; */
-    padding: 0 !important;
-    margin-bottom: auto !important;
-    list-style: none !important;
-    
-  }
 
-  .bottom-nav>li{
-    margin: 0 !important;
-    padding: 0 !important;
-  }
+/* Desktop Sidebar */
+.desktop-sidebar {
+  width: 250px;
+  padding: 20px 15px;
+  left: 0;
+  top: 0;
+}
 
-  .logo-img{
-    height: 50px;
-    width: 50px;
-    border-radius: 50%;
-    background-color: #fff;
-    margin-bottom: 20px !important;
-    align-self: flex-start;
-    position: relative;
-    right: 14px !important;
-  }
-  .sidebar-dec{
-    overflow-x: hidden !important;
-    width: 55px !important;
-  }
-  .sidebar h2 {
-    font-family: 'Instagram';
-    margin-bottom: 20px;
-  }
-  
-  .sidebar ul {
-    list-style-type: none;
+.desktop-sidebar.sidebar-dec {
+  width: 80px;
+  padding: 20px 10px;
+}
+
+/* Mobile Sidebar */
+.mobile-sidebar {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: auto;
+  width: 100%;
+  padding: 10px 0;
+  background-color: rgba(18, 18, 18, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid #333;
+}
+
+.sidebar-header {
+  padding: 0 10px 20px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #333;
+}
+
+.logo-text {
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0;
+  background: linear-gradient(45deg, #ff4d4d, #f9cb28);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.logo-img {
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 20px;
+}
+
+.sidebar-nav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mobile-sidebar .sidebar-nav {
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.sidebar-item:hover {
+  background-color: #252525;
+}
+
+.sidebar-item.active {
+  background-color: #333;
+}
+
+.sidebar-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom, #ff4d4d, #f9cb28);
+  border-radius: 0 3px 3px 0;
+}
+
+.mobile-item {
+  flex-direction: column;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+}
+
+.icon-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.nav-icon {
+  font-size: 1.2rem;
+  color: #fff;
+  transition: transform 0.2s ease;
+}
+
+.mobile-icon {
+  font-size: 1.4rem;
+  margin-bottom: 5px;
+}
+
+.nav-label {
+  margin-left: 15px;
+  font-size: 0.9rem;
+  transition: opacity 0.2s ease;
+}
+
+.desktop-sidebar.sidebar-dec .nav-label {
+  opacity: 0;
+  width: 0;
+  margin-left: 0;
+}
+
+.mobile-item .nav-label {
+  margin-left: 0;
+  font-size: 0.7rem;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #ff4d4d;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-weight: bold;
+}
+
+.message-badge {
+  background-color: #f9cb28;
+  color: #121212;
+}
+
+/* Dropdown Styles */
+.more-dropdown {
+  margin-top: auto;
+}
+
+.dropdown-toggle {
+  background: transparent !important;
+  border: none !important;
+  color: white !important;
+  padding: 12px 15px !important;
+  display: flex !important;
+  align-items: center !important;
+  width: 100%;
+  text-align: left;
+}
+
+.dropdown-toggle::after {
+  margin-left: auto;
+}
+
+.dropdown-menu {
+  background-color: #252525;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.dropdown-item {
+  color: #fff;
+  padding: 10px 15px;
+  transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #333;
+}
+
+.logout-item {
+  color: #ff4d4d !important;
+  font-weight: bold;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 991px) {
+  .sidebar-container {
     padding: 0;
   }
-  .active{
-    color: blue !important ;
+  
+  .sidebar-item {
+    padding: 10px;
   }
-
-  li{
-    padding: 0 !important;
-    padding-top: 1.5vh !important;
-    margin: 0 !important;
-  }
+  
   .notification-badge {
-    position: absolute;
-    background-color: #ff3b30; /* Red color */
-    color: white;
-    font-size: 12px; /* Adjust font size */
-    width: 18px; /* Circular badge */
-    height: 18px;
-    border-radius: 50%; /* Makes it a circle */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    top: 0;
+    right: 0;
   }
-  .notification-badge-message {
-    top: -6px;
-    left: 5px !important;
-    position: absolute;
-    background-color: #ff3b30; /* Red color */
-    color: white;
-    font-size: 12px; /* Adjust font size */
-    width: 20px; /* Circular badge */
-    height: 20px;
-    border-radius: 50%; /* Makes it a circle */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
-  }
-  .notification-icon {
-    margin:0px ;
-    position: relative;
-    display: inline-block; /* To contain the badge */
-  }
-  
-  
-  .sidebar li {
-    margin-bottom: 15px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-  }
-  .v-drop-item{
-    max-width: 50px !important;
-    overflow-x: hidden !important;
-  }
-  .sidebar li:hover {
-    color: #888;
-  }
-  .logo-container{
-    height: 50px !important;
-    width: 50px !important;
-  }
+}

@@ -31,9 +31,19 @@ const Sidebar = () => {
   const [showNotificationBar, setShowNotificationBar] = useState(false);
   const [current, setCurrent] = useState("home");
   const [prev, setPrev] = useState();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
   const [isOpen, setIsOpen] = useState(false);
 
   const socket = useSocket();
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 992);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   let handleBorder = () => {
     if (!current) return;
@@ -46,6 +56,7 @@ const Sidebar = () => {
       setPrev(current);
     }
   }
+
   const goNotification = useCallback(() => {
     const isMessagePage = location.pathname.includes("message");
     if (showNotificationBar) {
@@ -59,6 +70,7 @@ const Sidebar = () => {
     }
     setDecreaseWidth(!showNotificationBar);
   }, [allNotification, location.pathname, showNotificationBar, socket]);
+
   const handleNavigation = useCallback((path, adjustWidth = false) => {
     if (adjustWidth) setDecreaseWidth(true);
     if (showNotificationBar) {
@@ -77,10 +89,24 @@ const Sidebar = () => {
     else if (location.pathname.includes("profile")) {
       setCurrent("v-profile");
     }
+    else if (location.pathname.includes("reel")) {
+      setCurrent("reels");
+    }
+    else if (location.pathname.includes("search")) {
+      setCurrent("search");
+    }
+    else if (location.pathname.includes("explore")) {
+      setCurrent("explore");
+    }
+    else {
+      setCurrent("home");
+    }
   }, [location]);
+
   useEffect(() => {
     handleBorder()
   }, [current, location])
+
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -96,8 +122,6 @@ const Sidebar = () => {
           const response = await api.get(`/notification/get/${type}`, {
             headers: { 'Authorization': `Bearer ${user.token}` },
           });
-          console.log(response);
-
           response.data.data.forEach((element) => {
             if (!element.seen) sum += 1;
           });
@@ -126,7 +150,6 @@ const Sidebar = () => {
       };
       const handleRead = (data) => data && setAllNotification(data);
       let handleCall = (data) => {
-        console.log(data);
         navigate("/")
         dispatch(setShowCall(true))
         dispatch(setCall(data))
@@ -135,7 +158,6 @@ const Sidebar = () => {
         dispatch(setShowCall(false))
       }
       let handleMakeCall = (call) => {
-        console.log(call);
         dispatch(setShowCall(true))
         navigate("/")
         if(call.sender==user._id){
@@ -175,172 +197,130 @@ const Sidebar = () => {
         socket.off("recieving-call", handleCall)
         socket.off("call-ended", handleCallEnded)
         socket.off("make-call", handleMakeCall)
-
       };
     }
   }, [socket]);
 
-  const sidebarClass = classNames('bg-black  d-none d-lg-block sidebar', {
-    'w-25': !decreaseWidth,
-    'sidebar-dec': decreaseWidth,
+  const sidebarClass = classNames('sidebar-container', {
+    'desktop-sidebar': !isMobile,
+    'mobile-sidebar': isMobile,
+    'sidebar-dec': decreaseWidth && !isMobile,
   });
+
+  const mobileNavItems = [
+    { icon: faHouse, label: "Home", path: "/", className: "home" },
+    { icon: faVideo, label: "Reels", path: "/reel", className: "reels" },
+    { icon: faPlus, label: "Create", path: null, className: "create", action: () => dispatch(setShowModel(false)) },
+    { icon: faMessage, label: "Message", path: "/message", className: "message", notification: messageNoti },
+    { icon: faUser, label: "Profile", path: `/profile/${user?.name || 'guest'}`, className: "v-profile" },
+  ];
+
+  const desktopNavItems = [
+    { icon: faHouse, label: "Home", path: "/", className: "home" },
+    { icon: faMagnifyingGlass, label: "Search", path: "/search", className: "search" },
+    { icon: faCompass, label: "Explore", path: "/explore", className: "explore" },
+    { icon: faVideo, label: "Reels", path: "/reel", className: "reels" },
+    { icon: faMessage, label: "Message", path: "/message", className: "message", notification: messageNoti },
+    { icon: faBell, label: "Notification", path: null, className: "notification", action: goNotification, notification: notifications },
+    { icon: faUser, label: "Profile", path: `/profile/${user?.name || 'guest'}`, className: "v-profile" },
+    { icon: faPlus, label: "Create", path: null, className: "create", action: () => dispatch(setShowModel(false)) },
+  ];
 
   return (
     <>
-      <Row className="m-0 p-0 ">
+      <Row className="m-0 p-0">
         <div className={sidebarClass}>
-          {!decreaseWidth ? (
-            <h2>Chat Fight</h2>
-          ) : (
-            <img src={logo} alt="logo" className="m-0 p-0 d-inline bg-black logo-img" width={50} height={50} />
+          {!isMobile && (
+            <div className="sidebar-header">
+              {!decreaseWidth ? (
+                <h2 className="logo-text">Chat Fight</h2>
+              ) : (
+                <img src={logo} alt="logo" className="logo-img" width={50} height={50} />
+              )}
+            </div>
           )}
 
-          <ul className="d-flex flex-column gap-3 p-0 m-0 ">
-            <div className='home '>
-              <SidebarItem
-                icon={faHouse}
-                label="Home"
-                decreaseWidth={decreaseWidth}
-                onClick={() => {
-                  setCurrent("home");
-                  handleNavigation("/")
-                }}
-              />
-            </div>
-            <div className='search'>
-              <SidebarItem
-                icon={faMagnifyingGlass}
-                label="Search"
-                decreaseWidth={decreaseWidth}
-                onClick={() => {
-                  setCurrent("search")
-                  handleNavigation("/search")
-                }}
-              />
-            </div>
-            <div className='explore' onClick={() => {
-              setCurrent("explore")
-              handleNavigation("/explore")
-            }}>
-              <SidebarItem
-                icon={faCompass}
-                label="Explore"
-                decreaseWidth={decreaseWidth}
-              />
-            </div>
-            <div className='reels'>
-              <SidebarItem
-                icon={faVideo}
-                label="Reels"
-                decreaseWidth={decreaseWidth}
-                onClick={() => {
-                  setCurrent("reels")
-                  handleNavigation("/reel")
-                }}
-              />
-            </div>
-            <div className='message'>
-              <div className="notification-icon m-0 p-0">
-                <SidebarItem
-                  icon={faMessage}
-                  label="message"
-                  decreaseWidth={decreaseWidth}
-                  onClick={() => {
-                    setCurrent("message")
-                    handleNavigation("/message", true);
-                    setShowNotificationBar(false);
-                  }}
-                >
-                  {messageNoti > 0 && (
-                    <span className="notification-badge-message m-0 p-0">{messageNoti}</span>
-                  )}
-                </SidebarItem>
+          <ul className="sidebar-nav">
+            {(isMobile ? mobileNavItems : desktopNavItems).map((item) => (
+              <div key={item.className} className={item.className}>
+                <div className="notification-icon">
+                  <SidebarItem
+                    icon={item.icon}
+                    label={item.label}
+                    decreaseWidth={decreaseWidth && !isMobile}
+                    onClick={() => {
+                      setCurrent(item.className);
+                      if (item.action) {
+                        item.action();
+                      } else if (item.path) {
+                        handleNavigation(item.path, item.className === "message");
+                      }
+                    }}
+                    isMobile={isMobile}
+                  >
+                    {item.notification > 0 && (
+                      <span className={`notification-badge ${item.className === "message" ? "message-badge" : ""}`}>
+                        {item.notification}
+                      </span>
+                    )}
+                  </SidebarItem>
+                </div>
               </div>
-            </div>
-            <div className='notification'>
-              <div className="notification-icon m-0 p-0">
-                <SidebarItem
-                  icon={faBell}
-                  label="Notification"
-                  decreaseWidth={decreaseWidth}
-                  onClick={() => {
-                    setCurrent("notification")
-                    goNotification();
-                  }}
-                >
-                  {notifications > 0 && (
-                    <span className="notification-badge m-0 p-0">{notifications}</span>
-                  )}
-                </SidebarItem>
-              </div>
-            </div>
-            <div className='v-profile'>
-              <SidebarItem
-                icon={faUser}
-                label="Profile"
-                decreaseWidth={decreaseWidth}
-                onClick={() => {
-                  setCurrent("v-profile")
-                  handleNavigation(`/profile/${user?.name || 'guest'}`)
-                }}
-              />
-            </div>
-            <div className='create'>
-              <SidebarItem
-                icon={faPlus}
-                label="Create"
-                decreaseWidth={decreaseWidth}
-                onClick={() => {
-                  setCurrent("create")
-                  dispatch(setShowModel(false))
-                }}
-              />
-            </div>
-            <Dropdown className="v-dd mt-1 ">
-              <Dropdown.Toggle
-                variant="black"
-                id="dropdown-basic"
-                className="text-white d-flex align-items-center gap-2 p-0 "
-                onMouseEnter={(e) => e.preventDefault()}
-                aria-label="More Options"
-              >
-                <FontAwesomeIcon icon={faBars} className="text-white" />
-                {!decreaseWidth && <span>More</span>}
-              </Dropdown.Toggle>
+            ))}
 
-              <Dropdown.Menu className="shadow  w-25  v-drop-item     ">
-                <Dropdown.Item
-                  className="text-danger  fw-bold   "
-                  onClick={() =>
-                    popup("warning", "Are you sure to log out?", "", true, 10000000, true, dispatch, navigate)
-                  }
+            {!isMobile && (
+              <Dropdown className="more-dropdown">
+                <Dropdown.Toggle
+                  variant="transparent"
+                  id="dropdown-basic"
+                  className="dropdown-toggle"
+                  aria-label="More Options"
                 >
-                  Log Out
-                </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
+                  <FontAwesomeIcon icon={faBars} />
+                  {!decreaseWidth && <span>More</span>}
+                </Dropdown.Toggle>
+
+                <Dropdown.Menu className="dropdown-menu">
+                  <Dropdown.Item
+                    className="logout-item"
+                    onClick={() =>
+                      popup("warning", "Are you sure to log out?", "", true, 10000000, true, dispatch, navigate)
+                    }
+                  >
+                    Log Out
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+            )}
           </ul>
         </div>
       </Row>
-      <NotificationBar showBar={showNotificationBar} setShowBar={setShowNotificationBar} setDecresWidth={setDecreaseWidth} notifications={allNotification} allNotification={allNotification} setNotifications={setNotifications} />
+      <NotificationBar 
+        showBar={showNotificationBar} 
+        setShowBar={setShowNotificationBar} 
+        setDecresWidth={setDecreaseWidth} 
+        notifications={allNotification} 
+        allNotification={allNotification} 
+        setNotifications={setNotifications} 
+      />
     </>
   );
 };
 
-const SidebarItem = ({ icon, label, decreaseWidth, onClick, forMobile, children }) => (
+const SidebarItem = ({ icon, label, decreaseWidth, onClick, isMobile, children }) => (
   <li
-    className="fs-6 d-flex align-items-center position-relative"
+    className={`sidebar-item ${isMobile ? 'mobile-item' : ''}`}
     onClick={onClick}
     role="button"
-
     tabIndex={0}
     onKeyDown={(e) => e.key === 'Enter' && onClick && onClick()}
+    aria-label={label}
   >
-    <div className="notification-icon">
-      <FontAwesomeIcon icon={icon} className={`me-2 ${forMobile && "fs-2 ms-auto me-auto mb-auto mt-auto"}`} />
+    <div className="icon-container">
+      <FontAwesomeIcon icon={icon} className={`nav-icon ${isMobile ? 'mobile-icon' : ''}`} />
       {children}
     </div>
-    {!decreaseWidth && <span>{label}</span>}
+    {(!decreaseWidth || isMobile) && <span className="nav-label">{label}</span>}
   </li>
 );
 
@@ -350,14 +330,16 @@ SidebarItem.propTypes = {
   decreaseWidth: PropTypes.bool,
   onClick: PropTypes.func,
   children: PropTypes.node,
+  isMobile: PropTypes.bool,
 };
 
 SidebarItem.defaultProps = {
   label: '',
   decreaseWidth: false,
-  onClick: () => { },
+  onClick: () => {},
   children: null,
+  isMobile: false,
 };
 
 export default Sidebar;
-export { SidebarItem }
+export { SidebarItem };
