@@ -15,8 +15,8 @@ function Home() {
   let { showComment, comment } = useSelector((state) => state.comment)
   let { showEditModel } = useSelector(state => state.edit)
   return (
-    <div className="app bg-black">
-      <div className='d-flex w-100'>
+    <div className="app bg-black ">
+      <div className='d-flex vw-100'>
         <Sidebar />
         <div className='bg-black ' style={{
           backgroundColor: "black"
