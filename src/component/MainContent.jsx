@@ -4,7 +4,6 @@ import Post from './Post';
 import Story from './Story';
 import { useDispatch, useSelector } from 'react-redux';
 import fetchPost from '../fetch/fethPost';
-import RightSidebar from './RightSlidebar';
 import { setShowModel } from '../redux/slice/showCreateModel';
 import fetchStory from '../fetch/fetchStory';
 import { useSocket } from "../socket/SocketContext";
@@ -16,6 +15,7 @@ import { SidebarItem } from './Sidebar';
 import { faBell, faMessage } from '@fortawesome/free-solid-svg-icons';
 import { showMessage, showNoti } from '../redux/slice/showMobileNotification';
 import Call from './Call';
+import { motion, AnimatePresence } from 'framer-motion';
 
 function MainContent() {
   const storiesRef = useRef(null);
@@ -32,20 +32,26 @@ function MainContent() {
   const [notifications, setNotifications] = useState(0);
   const [messageNoti, setMessageNoti] = useState(0);
   const [allNotification, setAllNotification] = useState([]);
-  const [showNotificationBar, setShowNotificationBar] = useState(false);
-  const showCall = useSelector((state) => state.call.showCall)
+  const showCall = useSelector((state) => state.call.showCall);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
   let postId = searchParams.get("id");
   const postRefs = useRef({});
   let navigate = useNavigate();
-  const handleNavigation = useCallback((path, adjustWidth = false) => {
-    if (showNotificationBar) {
-      socket.emit("read-notification", allNotification);
-      setNotifications(0);
-    }
-    setShowNotificationBar(false);
-    navigate(path);
-  }, [allNotification, navigate, showNotificationBar, socket]);
 
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 992);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleNavigation = useCallback((path, adjustWidth = false) => {
+    navigate(path);
+  }, [navigate]);
+
+  // Socket event handlers
   useEffect(() => {
     if (socket) {
       const handleMessageReceived = (data) => setMessageNoti((prev) => prev + 1);
@@ -65,7 +71,7 @@ function MainContent() {
       socket.on("follow-request", handleNotification);
       socket.on("accept-request", handleNotification);
       socket.on("liked-post", handleNotification);
-      socket.on("comment-post", handleNotification)
+      socket.on("comment-post", handleNotification);
       socket.on("accept-request-success", handleYourNotification);
       socket.on("decline-request-success", handleYourNotification);
       socket.on("read-notification", handleRead);
@@ -80,24 +86,30 @@ function MainContent() {
         socket.off("decline-request-success", handleYourNotification);
         socket.off("read-notification", handleRead);
         socket.off("liked-post", handleNotification);
-        socket.off("comment-post", handleNotification)
+        socket.off("comment-post", handleNotification);
       };
     }
   }, [socket]);
+
   const goNotification = useCallback(() => {
-    if (showNotificationBar) {
-      socket.emit("read-notification", allNotification);
-      setNotifications(0);
-    }
-    dispatch(showNoti(true))
-  }, [allNotification, location.pathname, showNotificationBar, socket]);
+    dispatch(showNoti(true));
+  }, [dispatch]);
+
+  // Scroll to specific post if ID in URL
   useEffect(() => {
     if (postId && postRefs.current[postId]) {
-      postRefs.current[postId].scrollIntoView({ behavior: "smooth", block: "center" });
+      setTimeout(() => {
+        postRefs.current[postId].scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+      }, 300);
     }
   }, [postId, posts]);
+
+  // Fetch notifications
   useEffect(() => {
-    dispatch(showMessage(false))
+    dispatch(showMessage(false));
     const fetchNotifications = async () => {
       try {
         let sum = 0;
@@ -112,8 +124,6 @@ function MainContent() {
           const response = await api.get(`/notification/get/${type}`, {
             headers: { 'Authorization': `Bearer ${user.token}` },
           });
-          console.log(response);
-
           response.data.data.forEach((element) => {
             if (!element.seen) sum += 1;
           });
@@ -127,12 +137,12 @@ function MainContent() {
     };
 
     fetchNotifications();
-  }, []);
+  }, [dispatch, user.token]);
 
   // Fetch posts on mount
   useEffect(() => {
     fetchPost(user.token, dispatch, navigate);
-  }, [user.token, dispatch]);
+  }, [user.token, dispatch, navigate]);
 
   // Fetch stories
   useEffect(() => {
@@ -163,7 +173,7 @@ function MainContent() {
     })();
   }, [user.token]);
 
-  // Handle socket events
+  // Handle socket events for stories
   useEffect(() => {
     if (socket) {
       const addedStory = (data) => {
@@ -198,6 +208,7 @@ function MainContent() {
     }
   }, [socket]);
 
+  // Fetch user's own story
   useEffect(() => {
     let getYourStory = async () => {
       try {
@@ -212,11 +223,11 @@ function MainContent() {
       }
     };
     getYourStory();
-  }, [yourStory]);
+  }, [yourStory, user._id, user.token]);
 
   // Scroll stories section
   const scrollStories = useCallback((direction) => {
-    const scrollAmount = 48;
+    const scrollAmount = 300;
     if (storiesRef.current) {
       storiesRef.current.scrollBy({
         left: direction === 'left' ? -scrollAmount : scrollAmount,
@@ -248,66 +259,84 @@ function MainContent() {
   }, [updateScrollButtons]);
 
   return (
-    <div className='w-100 position-relative  vh-100 '>
-      {
-        showCall  &&
-        <div className='position-fixed z-plus bg-black w-100 h-100 '>
-          <Call />
-        </div>
-      }
-      <div className=' d-flex  align-items-center   mb-0 bg-secondory    d-lg-none text-white'>
-        <div className='d-flex justify-content-center align-items-center bg-secondory '>
-          <h1 className='insta-text fw-bold mt-2 ms-1'>Chat Fight</h1>
-        </div>
-        <div className='d-flex ms-auto  gap-1'>
-          <div className='message'>
-            <div className="notification-icon    d-flex justify-content-center pointer circle  ">
-              <SidebarItem
-                icon={faMessage}
-                label=""
-                forMobile={true}
-                decreaseWidth={true}
-                onClick={() => {
-                  dispatch(showMessage(true))
-                  handleNavigation("/message", true);
-                }}
-              >
-                {messageNoti > 0 && (
-                  <span className="notification-badge-message m-0 p-0">{messageNoti}</span>
-                )}
-              </SidebarItem>
+    <div className='main-content-container'>
+      <AnimatePresence>
+        {showCall && (
+          <motion.div 
+            className='call-overlay'
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <Call />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Header */}
+      {isMobile && (
+        <motion.div 
+          className='mobile-header'
+          initial={{ y: -50 }}
+          animate={{ y: 0 }}
+          transition={{ type: 'spring', stiffness: 300 }}
+        >
+          <div className='header-content'>
+            <h1 className='app-title'>Chat Fight</h1>
+            <div className='header-icons'>
+              <div className='message-icon'>
+                <SidebarItem
+                  icon={faMessage}
+                  label=""
+                  forMobile={true}
+                  decreaseWidth={true}
+                  onClick={() => {
+                    dispatch(showMessage(true));
+                    handleNavigation("/message", true);
+                  }}
+                >
+                  {messageNoti > 0 && (
+                    <span className="notification-badge">{messageNoti}</span>
+                  )}
+                </SidebarItem>
+              </div>
+              <div className='notification-icon'>
+                <SidebarItem
+                  icon={faBell}
+                  label=""
+                  decreaseWidth={true}
+                  forMobile={true}
+                  onClick={goNotification}
+                >
+                  {notifications > 0 && (
+                    <span className="notification-badge">{notifications}</span>
+                  )}
+                </SidebarItem>
+              </div>
             </div>
           </div>
-          <div className='notification'>
-            <div className="notification-icon m-0 p-0 d-flex justify-content-center circle m-0 p-0">
-              <SidebarItem
-                icon={faBell}
-                label=""
-                decreaseWidth={true}
-                forMobile={true}
-                onClick={() => {
-                  goNotification();
-                }}
-              >
-                {notifications > 0 && (
-                  <span className="notification-badge m-0 p-0">{notifications}</span>
-                )}
-              </SidebarItem>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="main-content w-100 mt-0 mb-0 ">
+        </motion.div>
+      )}
+
+      <div className="content-wrapper">
         {/* Stories Section */}
-        <div className="stories-container justify-content-center ms-0 ms-lg-auto me-lg-auto d-flex">
+        <div className="stories-section">
           {canScrollLeft && (
-            <button className="mt-2 scroll-button left" onClick={() => scrollStories('left')}>
+            <motion.button 
+              className="scroll-button left"
+              onClick={() => scrollStories('left')}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
               &#8249;
-            </button>
+            </motion.button>
           )}
-          <div className="stories" ref={storiesRef}>
-            <div className="text-center">
-              <div className="story rounded-circle position-relative " onClick={() => {
+          
+          <div className="stories-container" ref={storiesRef}>
+            <motion.div 
+              className="your-story"
+              whileHover={{ scale: 1.05 }}
+              onClick={() => {
                 if (teriStory.length === 0) {
                   dispatch(setShowModel(true));
                 } else {
@@ -319,49 +348,76 @@ function MainContent() {
                   }));
                   dispatch(setShowStory(true));
                 }
-              }}>
-                <img src={user.avatar.url} alt="user" className="w-100 h-100 rounded-circle" />
-                <div className='mt-2 p-2 text-white rounded-circle  v-plus end-0 rounded-circle'>
-                  <h6 className="fs-3 text-white mt-1">+</h6>
+              }}
+            >
+              <div className="story-avatar">
+                <img 
+                  src={user.avatar.url} 
+                  alt="user" 
+                  className="avatar-image" 
+                />
+                <div className='add-story'>
+                  <span>+</span>
                 </div>
               </div>
-              <p className="text-white story-text me-2">you</p>
-            </div>
+              <p className="story-username">you</p>
+            </motion.div>
+            
             {allStory.map((storyGroup, index) => (
-              <Story
+              <motion.div
                 key={index}
-                media={storyGroup}
-                name={storyGroup[0]?.user?.name}
-                avatar={storyGroup[0]?.user?.avatar}
-              />
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <Story
+                  media={storyGroup}
+                  name={storyGroup[0]?.user?.name}
+                  avatar={storyGroup[0]?.user?.avatar}
+                />
+              </motion.div>
             ))}
           </div>
+          
           {canScrollRight && (
-            <button className="scroll-button right mt-2" onClick={() => scrollStories('right')}>
+            <motion.button 
+              className="scroll-button right"
+              onClick={() => scrollStories('right')}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
               &#8250;
-            </button>
+            </motion.button>
           )}
         </div>
 
         {/* Posts Section */}
-        <div className="posts">
-          {posts.map((element) => (
-            <Post
-              ref={(el) => (postRefs.current[element._id] = el)}
-              id={element._id}
-              youLiked={element.youLiked}
-              likes={element.likes.length}
-              _id={element._id}
+        <div className="posts-container">
+          {posts.map((element, index) => (
+            <motion.div
               key={element._id}
-              src={element.media.url}
-              avatar={element.createdBy.avatar.url}
-              userName={element.createdBy._id === user._id ? "you" : element.createdBy.userName}
-              createdAt={element.createdAt}
-              comment={element.comment}
-            />
+              ref={(el) => (postRefs.current[element._id] = el)}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+            >
+              <Post
+                youLiked={element.youLiked}
+                likes={element.likes.length}
+                _id={element._id}
+                src={element.media.url}
+                avatar={element.createdBy.avatar.url}
+                userName={element.createdBy._id === user._id ? "you" : element.createdBy.userName}
+                createdAt={element.createdAt}
+                comment={element.comment}
+              />
+            </motion.div>
           ))}
         </div>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      {isMobile && <BottomSidebar />}
     </div>
   );
 }
