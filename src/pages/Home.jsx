@@ -18,7 +18,7 @@ function Home() {
     <div className="app bg-black ">
       <div className='d-flex vw-100'>
         <Sidebar />
-        <div className='bg-black ' style={{
+        <div className='bg-danger ' style={{
           backgroundColor: "black"
         }}>
           <Outlet />
