@@ -318,7 +318,7 @@ function MainContent() {
         </motion.div>
       )}
 
-      <div className="content-wrapper">
+      <div className="content-wrapper w-100">
         {/* Stories Section */}
         <div className="stories-section">
           {canScrollLeft && (
