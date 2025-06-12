@@ -83,6 +83,7 @@
 
 /* Content Wrapper */
 .content-wrapper {
+  min-width: 100% !important;
   margin: 0 auto;
   padding: 20px 0;
 }
