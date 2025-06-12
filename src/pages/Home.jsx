@@ -16,12 +16,15 @@ function Home() {
   let { showEditModel } = useSelector(state => state.edit)
   return (
     <div className="app bg-black">
-      <Sidebar />
-      <div className='w-100 bg-black ' style={{
-        backgroundColor: "black"
-      }}>
-        <Outlet />
+      <div className='d-flex w-100'>
+        <Sidebar />
+        <div className='bg-black ' style={{
+          backgroundColor: "black"
+        }}>
+          <Outlet />
+        </div>
       </div>
+
       <CreateModal />
       <MessageModel />
       {
