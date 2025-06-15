@@ -52,6 +52,7 @@ function MainContent() {
   const user = useSelector((state) => state.user.user);
   const yourStory = useSelector((state) => state.yourStory.story);
   const showCall = useSelector((state) => state.call.showCall);
+  const showStoryModel = useSelector((state) => state.showStoryModel.showStory);
 
   // Router
   const [searchParams] = useSearchParams();
@@ -266,7 +267,7 @@ function MainContent() {
   }, [teriStory, dispatch]);
 
   return (
-    <div className={`main-content-container ${isScrolled ? 'scrolled' : ''}`}>
+    <div className={`main-content-container ${isScrolled ? 'scrolled' : ''} ms-0`}>
       {/* Animated Background */}
       {showParticles && (
         <div className="animated-background">
@@ -284,6 +285,21 @@ function MainContent() {
         <div className="blob blob-2"></div>
         <div className="blob blob-3"></div>
       </div>
+
+      {/* Story Modal Overlay */}
+      <AnimatePresence>
+        {showStoryModel && (
+          <motion.div 
+            className="story-modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Story content will be rendered here by the Story component */}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Call Overlay */}
       <AnimatePresence>

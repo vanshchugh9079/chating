@@ -8,7 +8,40 @@
   overflow-x: hidden;
   transition: all 0.3s ease;
 }
+/* Add these styles to your CSS file */
 
+.story-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.9);
+  z-index: 1001; /* Higher than call overlay and other elements */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(10px);
+}
+
+/* Ensure other elements have proper z-index */
+.animated-background, .floating-blobs {
+  z-index: -1;
+}
+
+.mobile-header {
+  z-index: 100;
+}
+
+.call-overlay {
+  z-index: 1000;
+}
+
+/* Story component should have high z-index */
+.story-content-container {
+  z-index: 1002;
+  position: relative;
+}
 .main-content-container.scrolled {
   background-color: #0a0a0f;
 }
