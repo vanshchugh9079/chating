@@ -20,7 +20,9 @@ function Home() {
         <Sidebar />
         <div className='w-100' style={{
           backgroundColor: "black",
-          maxWidth:"100%"
+          maxWidth:"100%",
+          maxHeight:"100vh",
+          overflowY:"auto"
         }}>
           <Outlet />
         </div>
