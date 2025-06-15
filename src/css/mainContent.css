@@ -5,7 +5,60 @@
   color: #e0e0e0;
   overflow-x: hidden;
 }
+/* Loading States */
+.loading-posts {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+}
 
+.post-skeleton {
+  background: rgba(26, 26, 35, 0.8);
+  border-radius: 12px;
+  padding: 15px;
+}
+
+.skeleton-header {
+  height: 50px;
+  background: rgba(42, 42, 53, 0.6);
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.skeleton-content {
+  height: 300px;
+  background: rgba(42, 42, 53, 0.6);
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.skeleton-footer {
+  height: 30px;
+  background: rgba(42, 42, 53, 0.6);
+  border-radius: 8px;
+}
+
+.empty-posts {
+  text-align: center;
+  padding: 40px;
+  color: #a0a0a0;
+}
+
+.empty-posts h3 {
+  color: #f0f0f0;
+  margin-bottom: 10px;
+}
+
+/* Lazy loading for images */
+.avatar-image {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.avatar-image.loaded {
+  opacity: 1;
+}
 /* Background Animation */
 .background-animation {
   position: fixed;
