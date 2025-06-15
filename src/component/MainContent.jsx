@@ -95,7 +95,7 @@ function MainContent() {
 
   return (
     <div 
-      className='main-content-container'
+      className='main-content-container ms-0'
       ref={backgroundRef}
     >
       {/* Animated Background Layer */}
