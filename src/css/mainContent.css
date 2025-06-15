@@ -1,34 +1,85 @@
+/* Base Styles */
 .main-content-container {
-  background-color: #0f0f13;
-  color: #e0e0e0;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
   position: relative;
+  min-height: 100vh;
+  color: #e0e0e0;
+  overflow-x: hidden;
 }
 
-.call-overlay {
+/* Background Animation */
+.background-animation {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(15, 15, 19, 0.9);
+  z-index: -1;
+  overflow: hidden;
+}
+
+.background-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transform-origin: center center;
+  transition: opacity 1.5s ease-in-out, filter 1.2s ease-out;
+  will-change: transform, opacity;
+  filter: brightness(0.4) blur(3px);
+}
+
+.background-image.active {
+  opacity: 1;
+  filter: brightness(0.5) blur(0px);
+}
+
+.background-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg, 
+    rgba(15, 15, 19, 0.9) 0%, 
+    rgba(26, 26, 35, 0.85) 100%
+  );
+}
+
+/* Scroll Progress */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 4px;
+  width: 100%;
+  background: linear-gradient(90deg, #ff4757, #ff6b81);
   z-index: 1000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  transform-origin: left center;
+}
+
+/* Content Overlay */
+.content-overlay {
+  position: relative;
+  min-height: 100vh;
+  backdrop-filter: blur(2px);
 }
 
 /* Mobile Header */
 .mobile-header {
-  background-color: #1a1a23;
+  background-color: rgba(26, 26, 35, 0.9);
   padding: 12px 15px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  border-bottom: 1px solid #2a2a35;
+  border-bottom: 1px solid rgba(42, 42, 53, 0.7);
   position: sticky;
   top: 0;
   z-index: 100;
+  backdrop-filter: blur(5px);
 }
 
 .header-content {
@@ -68,15 +119,16 @@
 /* Content Wrapper */
 .content-wrapper {
   flex: 1;
-  padding-bottom: 60px; /* Space for bottom navigation */
+  padding-bottom: 60px;
 }
 
 /* Stories Section */
 .stories-section {
-  background-color: #1a1a23;
+  background-color: rgba(26, 26, 35, 0.9);
   padding: 15px 0;
-  border-bottom: 1px solid #2a2a35;
+  border-bottom: 1px solid rgba(42, 42, 53, 0.7);
   position: relative;
+  backdrop-filter: blur(4px);
 }
 
 .stories-container {
@@ -84,12 +136,12 @@
   gap: 15px;
   padding: 0 15px;
   overflow-x: auto;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .stories-container::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none;
 }
 
 .your-story, .story-container {
@@ -113,8 +165,26 @@
   justify-content: center;
   align-items: center;
   position: relative;
-  background: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
   padding: 2px;
+}
+
+.gradient-border {
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  position: relative;
+}
+
+.gradient-border::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  z-index: -1;
+  border-radius: 50%;
+  opacity: 0.7;
 }
 
 .avatar-image {
@@ -122,7 +192,7 @@
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #4a4a55;
+  border: 2px solid rgba(74, 74, 85, 0.5);
 }
 
 .add-story {
@@ -159,7 +229,7 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background-color: #2a2a35;
+  background-color: rgba(42, 42, 53, 0.8);
   color: #f0f0f0;
   border: none;
   display: flex;
@@ -168,6 +238,7 @@
   cursor: pointer;
   z-index: 10;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(2px);
 }
 
 .scroll-button.left {
@@ -186,19 +257,45 @@
   gap: 20px;
 }
 
-.post-container {
-  background-color: #1a1a23;
+.post-wrapper {
+  background-color: rgba(26, 26, 35, 0.9);
   border-radius: 12px;
-  border: 1px solid #2a2a35;
+  border: 1px solid rgba(42, 42, 53, 0.7);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   overflow: hidden;
   margin: 0 15px;
+  transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+  backdrop-filter: blur(4px);
+}
+
+.post-wrapper:hover {
+  transform: translateY(-5px) scale(1.01);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* Animations */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.floating-element {
+  animation: float 6s ease-in-out infinite;
+}
+
+[data-aos] {
+  transition-property: transform, opacity;
 }
 
 /* Responsive Adjustments */
 @media (min-width: 992px) {
   .main-content-container {
-    margin-left: 25%; /* Account for sidebar */
+    margin-left: 25%;
+  }
+  
+  .content-overlay {
+    margin-left: 0;
   }
 
   .mobile-header {
@@ -217,55 +314,27 @@
     padding: 0 30px;
   }
 
-  .post-container {
+  .post-wrapper {
     margin: 0 auto;
     max-width: 600px;
     width: 100%;
   }
+
+  .background-image {
+    background-attachment: fixed;
+  }
 }
 
-/* Animation Enhancements */
-[data-aos] {
-  transition-property: transform, opacity;
-}
-
-/* Dark Theme Text Colors */
-.post-header, .post-caption, .post-comments, .post-actions {
-  color: #e0e0e0;
-}
-
-/* Story Ring Colors */
-.story-ring {
-  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-}
-
-/* Loading States */
-.loading-post {
-  background-color: #2a2a35;
-  border-radius: 12px;
-  height: 400px;
-  margin: 15px;
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0% { opacity: 0.6; }
-  50% { opacity: 0.3; }
-  100% { opacity: 0.6; }
-}
-
-/* Notification Badge Animation */
-.notification-badge {
-  transition: all 0.3s ease;
-}
-
-/* Hover Effects */
-.your-story:hover, .story-container:hover {
-  transform: scale(1.05);
-  transition: transform 0.2s ease;
-}
-
-.scroll-button:hover {
-  transform: translateY(-50%) scale(1.1);
-  transition: transform 0.2s ease;
+/* Call Overlay */
+.call-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 15, 19, 0.9);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
