@@ -18,6 +18,9 @@ import NotificationBar from './NotificationBar';
 import { setUserData } from '../redux/slice/user.slice';
 import popup from '../model/popup';
 import { setCall, setShowCall, setWho } from '../redux/slice/callSlice';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
+import { motion } from 'framer-motion';
 
 const Sidebar = () => {
   const dispatch = useDispatch();
@@ -35,6 +38,15 @@ const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const socket = useSocket();
+
+  // Initialize AOS
+  useEffect(() => {
+    AOS.init({
+      duration: 800,
+      easing: 'ease-in-out',
+      once: false
+    });
+  }, []);
 
   // Handle window resize
   useEffect(() => {
@@ -205,6 +217,7 @@ const Sidebar = () => {
     'desktop-sidebar': !isMobile,
     'mobile-sidebar': isMobile,
     'sidebar-dec': decreaseWidth && !isMobile,
+    'dark-theme': true, // Added dark theme class
   });
 
   const mobileNavItems = [
@@ -229,20 +242,35 @@ const Sidebar = () => {
   return (
     <>
       <Row className="m-0 p-0 w-25">
-        <div className={sidebarClass}>
+        <motion.div 
+          className={sidebarClass}
+          initial={{ x: -300 }}
+          animate={{ x: 0 }}
+          transition={{ type: 'spring', stiffness: 100 }}
+        >
           {!isMobile && (
-            <div className="sidebar-header">
+            <motion.div 
+              className="sidebar-header"
+              data-aos="fade-right"
+            >
               {!decreaseWidth ? (
                 <h2 className="logo-text">Chat Fight</h2>
               ) : (
                 <img src={logo} alt="logo" className="logo-img" width={50} height={50} />
               )}
-            </div>
+            </motion.div>
           )}
 
           <ul className="sidebar-nav">
-            {(isMobile ? mobileNavItems : desktopNavItems).map((item) => (
-              <div key={item.className} className={item.className}>
+            {(isMobile ? mobileNavItems : desktopNavItems).map((item, index) => (
+              <motion.div 
+                key={item.className} 
+                className={item.className}
+                data-aos="fade-right"
+                data-aos-delay={index * 50}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <div className="notification-icon">
                   <SidebarItem
                     icon={item.icon}
@@ -259,33 +287,42 @@ const Sidebar = () => {
                     isMobile={isMobile}
                   >
                     {item.notification > 0 && (
-                      <span className={`notification-badge ${item.className === "message" ? "message-badge" : ""}`}>
+                      <motion.span 
+                        className={`notification-badge ${item.className === "message" ? "message-badge" : ""}`}
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 500 }}
+                      >
                         {item.notification}
-                      </span>
+                      </motion.span>
                     )}
                   </SidebarItem>
                 </div>
-              </div>
+              </motion.div>
             ))}
 
             {!isMobile && (
-              <Dropdown className="more-dropdown">
+              <Dropdown className="more-dropdown" data-aos="fade-right" data-aos-delay={400}>
                 <Dropdown.Toggle
                   variant="transparent"
                   id="dropdown-basic"
                   className="dropdown-toggle"
                   aria-label="More Options"
+                  as={motion.div}
+                  whileHover={{ scale: 1.05 }}
                 >
                   <FontAwesomeIcon icon={faBars} />
                   {!decreaseWidth && <span>More</span>}
                 </Dropdown.Toggle>
 
-                <Dropdown.Menu className="dropdown-menu">
+                <Dropdown.Menu className="dropdown-menu dark-dropdown">
                   <Dropdown.Item
                     className="logout-item"
                     onClick={() =>
                       popup("warning", "Are you sure to log out?", "", true, 10000000, true, dispatch, navigate)
                     }
+                    as={motion.div}
+                    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
                   >
                     Log Out
                   </Dropdown.Item>
@@ -293,7 +330,7 @@ const Sidebar = () => {
               </Dropdown>
             )}
           </ul>
-        </div>
+        </motion.div>
       </Row>
       <NotificationBar 
         showBar={showNotificationBar} 
@@ -308,20 +345,22 @@ const Sidebar = () => {
 };
 
 const SidebarItem = ({ icon, label, decreaseWidth, onClick, isMobile, children }) => (
-  <li
+  <motion.li
     className={`sidebar-item ${isMobile ? 'mobile-item' : ''}`}
     onClick={onClick}
     role="button"
     tabIndex={0}
     onKeyDown={(e) => e.key === 'Enter' && onClick && onClick()}
     aria-label={label}
+    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+    whileTap={{ scale: 0.95 }}
   >
     <div className="icon-container">
       <FontAwesomeIcon icon={icon} className={`nav-icon ${isMobile ? 'mobile-icon' : ''}`} />
       {children}
     </div>
     {(!decreaseWidth || isMobile) && <span className="nav-label">{label}</span>}
-  </li>
+  </motion.li>
 );
 
 SidebarItem.propTypes = {

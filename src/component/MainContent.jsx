@@ -16,6 +16,8 @@ import { faBell, faMessage } from '@fortawesome/free-solid-svg-icons';
 import { showMessage, showNoti } from '../redux/slice/showMobileNotification';
 import Call from './Call';
 import { motion, AnimatePresence } from 'framer-motion';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 
 function MainContent() {
   const storiesRef = useRef(null);
@@ -37,6 +39,15 @@ function MainContent() {
   let postId = searchParams.get("id");
   const postRefs = useRef({});
   let navigate = useNavigate();
+
+  // Initialize AOS
+  useEffect(() => {
+    AOS.init({
+      duration: 800,
+      easing: 'ease-in-out',
+      once: false
+    });
+  }, []);
 
   // Handle window resize
   useEffect(() => {
@@ -259,7 +270,7 @@ function MainContent() {
   }, [updateScrollButtons]);
 
   return (
-    <div className='main-content-container w-100'>
+    <div className='main-content-container dark-theme w-100'>
       <AnimatePresence>
         {showCall && (
           <motion.div 
@@ -276,10 +287,11 @@ function MainContent() {
       {/* Mobile Header */}
       {isMobile && (
         <motion.div 
-          className='mobile-header'
+          className='mobile-header dark-header'
           initial={{ y: -50 }}
           animate={{ y: 0 }}
           transition={{ type: 'spring', stiffness: 300 }}
+          data-aos="fade-down"
         >
           <div className='header-content'>
             <h1 className='app-title'>Chat Fight</h1>
@@ -296,7 +308,14 @@ function MainContent() {
                   }}
                 >
                   {messageNoti > 0 && (
-                    <span className="notification-badge">{messageNoti}</span>
+                    <motion.span 
+                      className="notification-badge"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 500 }}
+                    >
+                      {messageNoti}
+                    </motion.span>
                   )}
                 </SidebarItem>
               </div>
@@ -309,7 +328,14 @@ function MainContent() {
                   onClick={goNotification}
                 >
                   {notifications > 0 && (
-                    <span className="notification-badge">{notifications}</span>
+                    <motion.span 
+                      className="notification-badge"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 500 }}
+                    >
+                      {notifications}
+                    </motion.span>
                   )}
                 </SidebarItem>
               </div>
@@ -320,13 +346,14 @@ function MainContent() {
 
       <div className="content-wrapper w-100">
         {/* Stories Section */}
-        <div className="stories-section">
+        <div className="stories-section dark-stories">
           {canScrollLeft && (
             <motion.button 
               className="scroll-button left"
               onClick={() => scrollStories('left')}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
+              data-aos="fade-right"
             >
               &#8249;
             </motion.button>
@@ -349,6 +376,7 @@ function MainContent() {
                   dispatch(setShowStory(true));
                 }
               }}
+              data-aos="fade-up"
             >
               <div className="story-avatar">
                 <img 
@@ -369,6 +397,8 @@ function MainContent() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.05 }}
+                data-aos="fade-up"
+                data-aos-delay={index * 50}
               >
                 <Story
                   media={storyGroup}
@@ -385,6 +415,7 @@ function MainContent() {
               onClick={() => scrollStories('right')}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
+              data-aos="fade-left"
             >
               &#8250;
             </motion.button>
@@ -392,7 +423,7 @@ function MainContent() {
         </div>
 
         {/* Posts Section */}
-        <div className="posts-container">
+        <div className="posts-container dark-posts">
           {posts.map((element, index) => (
             <motion.div
               key={element._id}
@@ -400,6 +431,8 @@ function MainContent() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
+              data-aos="fade-up"
+              data-aos-delay={index * 50}
             >
               <Post
                 youLiked={element.youLiked}
