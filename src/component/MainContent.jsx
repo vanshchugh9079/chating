@@ -21,13 +21,13 @@ import { setShowStory, setStory } from '../redux/slice/showStoryModel';
 import { showMessage, showNoti } from '../redux/slice/showMobileNotification';
 
 // Services
-import fetchPost from '../fetch/fetchPost';
+import fetchPost from '../fetch/fethPost.js';
 import fetchStory from '../fetch/fetchStory';
 import { useSocket } from "../socket/SocketContext";
 import { api } from '../contant';
 
 // Config
-import particlesConfig from '../config/particlesConfig';
+import particlesConfig from '../config/particlesConfig.js';
 
 function MainContent() {
   // Refs
