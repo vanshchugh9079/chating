@@ -270,7 +270,7 @@ function MainContent() {
   }, [updateScrollButtons]);
 
   return (
-    <div className='main-content-container dark-theme w-100'>
+    <div className='main-content-container'>
       <AnimatePresence>
         {showCall && (
           <motion.div 
@@ -287,7 +287,7 @@ function MainContent() {
       {/* Mobile Header */}
       {isMobile && (
         <motion.div 
-          className='mobile-header dark-header'
+          className='mobile-header'
           initial={{ y: -50 }}
           animate={{ y: 0 }}
           transition={{ type: 'spring', stiffness: 300 }}
@@ -344,9 +344,9 @@ function MainContent() {
         </motion.div>
       )}
 
-      <div className="content-wrapper w-100">
+      <div className="content-wrapper">
         {/* Stories Section */}
-        <div className="stories-section dark-stories">
+        <div className="stories-section">
           {canScrollLeft && (
             <motion.button 
               className="scroll-button left"
@@ -423,7 +423,7 @@ function MainContent() {
         </div>
 
         {/* Posts Section */}
-        <div className="posts-container dark-posts">
+        <div className="posts-container">
           {posts.map((element, index) => (
             <motion.div
               key={element._id}
