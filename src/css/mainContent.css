@@ -5,7 +5,22 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  width: 100%;
+  margin-left: 0 !important; /* Ensure ms-0 works */
+}
+
+/* Scroll Progress Indicator */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #ff758c, #ff7eb3);
+  z-index: 1000;
+  transition: width 0.1s ease;
 }
 
 /* Animated Background */
@@ -17,7 +32,9 @@
   bottom: 0;
   z-index: -2;
   background-size: 200% 200%;
-  filter: blur(20px);
+  filter: blur(30px);
+  opacity: 0.2;
+  transition: background 1.5s ease, opacity 1s ease;
 }
 
 /* Floating Particles */
@@ -29,12 +46,15 @@
   bottom: 0;
   z-index: -1;
   pointer-events: none;
+  overflow: hidden;
 }
 
 .particle {
   position: absolute;
   border-radius: 50%;
   pointer-events: none;
+  will-change: transform, opacity;
+  filter: blur(1px);
 }
 
 .call-overlay {
@@ -43,45 +63,52 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(15, 15, 19, 0.9);
+  background-color: rgba(15, 15, 19, 0.95);
   z-index: 1000;
   display: flex;
   justify-content: center;
   align-items: center;
+  backdrop-filter: blur(10px);
 }
 
 /* Mobile Header */
 .mobile-header {
-  background-color: rgba(26, 26, 35, 0.9);
-  backdrop-filter: blur(10px);
+  background-color: rgba(26, 26, 35, 0.95);
+  backdrop-filter: blur(15px);
   padding: 12px 15px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  border-bottom: 1px solid rgba(42, 42, 53, 0.5);
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   position: sticky;
   top: 0;
   z-index: 100;
+  width: 100%;
 }
 
 .header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .app-title {
   color: #f0f0f0;
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0;
   background: linear-gradient(90deg, #ff758c, #ff7eb3);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
 }
 
 .header-icons {
   display: flex;
   gap: 20px;
+  align-items: center;
 }
 
 .notification-badge {
@@ -91,30 +118,34 @@
   background-color: #ff4757;
   color: white;
   border-radius: 50%;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 0.7rem;
   font-weight: bold;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Content Wrapper */
 .content-wrapper {
   flex: 1;
-  padding-bottom: 60px; /* Space for bottom navigation */
+  padding-bottom: 70px; /* Space for bottom navigation */
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 /* Stories Section */
 .stories-section {
-  background-color: rgba(26, 26, 35, 0.9);
-  backdrop-filter: blur(10px);
+  background-color: rgba(26, 26, 35, 0.95);
+  backdrop-filter: blur(15px);
   padding: 15px 0;
-  border-bottom: 1px solid rgba(42, 42, 53, 0.5);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   position: relative;
   z-index: 10;
+  width: 100%;
 }
 
 .stories-container {
@@ -124,6 +155,9 @@
   overflow-x: auto;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
+  scroll-behavior: smooth;
+  scroll-snap-type: x proximity;
+  padding-bottom: 5px;
 }
 
 .stories-container::-webkit-scrollbar {
@@ -134,26 +168,27 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
   flex-shrink: 0;
+  cursor: pointer;
+  scroll-snap-align: start;
 }
 
 .your-story {
-  width: 80px;
-  cursor: pointer;
+  width: 85px;
+  margin-left: 5px;
 }
 
 .story-avatar {
-  width: 60px;
-  height: 60px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
-  background: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
-  padding: 2px;
-  transition: all 0.3s ease;
+  padding: 3px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .avatar-image {
@@ -161,15 +196,16 @@
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #4a4a55;
+  border: 2px solid rgba(26, 26, 35, 0.8);
+  background-color: rgba(26, 26, 35, 0.8);
 }
 
 .add-story {
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   background-color: #4a4a55;
   border-radius: 50%;
   display: flex;
@@ -179,11 +215,12 @@
   font-weight: bold;
   font-size: 0.9rem;
   transition: all 0.3s ease;
+  border: 2px solid rgba(26, 26, 35, 0.8);
 }
 
 .story-username {
   color: #e0e0e0;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   margin: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -191,16 +228,17 @@
   max-width: 80px;
   text-align: center;
   transition: all 0.3s ease;
+  font-weight: 500;
 }
 
 .scroll-button {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background-color: rgba(42, 42, 53, 0.8);
+  background-color: rgba(42, 42, 53, 0.9);
   backdrop-filter: blur(5px);
   color: #f0f0f0;
   border: none;
@@ -209,16 +247,21 @@
   align-items: center;
   cursor: pointer;
   z-index: 10;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.scroll-button:hover {
+  background-color: rgba(74, 74, 85, 0.9);
 }
 
 .scroll-button.left {
-  left: 5px;
+  left: 8px;
 }
 
 .scroll-button.right {
-  right: 5px;
+  right: 8px;
 }
 
 /* Posts Section */
@@ -226,21 +269,97 @@
   padding: 20px 0;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 25px;
+  width: 100%;
 }
 
-.post-container {
-  background-color: rgba(26, 26, 35, 0.9);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  border: 1px solid rgba(42, 42, 53, 0.5);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.post-wrapper {
+  background-color: rgba(26, 26, 35, 0.95);
+  backdrop-filter: blur(15px);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   overflow: hidden;
-  margin: 0 15px;
-  transition: all 0.3s ease;
+  margin: 0 auto;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  width: calc(100% - 30px);
+  max-width: 600px;
+}
+
+/* Post Skeleton Loading */
+.post-skeleton {
+  background-color: rgba(26, 26, 35, 0.8);
+  border-radius: 14px;
+  overflow: hidden;
+  margin: 0 auto;
+  width: calc(100% - 30px);
+  max-width: 600px;
+  padding: 15px;
+}
+
+.skeleton-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(42, 42, 53, 0.6);
+  margin-right: 10px;
+}
+
+.skeleton-user {
+  width: 120px;
+  height: 16px;
+  border-radius: 8px;
+  background-color: rgba(42, 42, 53, 0.6);
+}
+
+.skeleton-media {
+  width: 100%;
+  height: 350px;
+  background-color: rgba(42, 42, 53, 0.6);
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.skeleton-actions {
+  width: 100%;
+  height: 24px;
+  background-color: rgba(42, 42, 53, 0.6);
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.skeleton-caption {
+  width: 80%;
+  height: 14px;
+  background-color: rgba(42, 42, 53, 0.6);
+  border-radius: 7px;
+  margin-bottom: 10px;
+}
+
+.skeleton-comments {
+  width: 60%;
+  height: 12px;
+  background-color: rgba(42, 42, 53, 0.6);
+  border-radius: 6px;
 }
 
 /* Responsive Adjustments */
+@media (min-width: 768px) {
+  .stories-container {
+    padding: 0 30px;
+  }
+  
+  .post-wrapper {
+    width: calc(100% - 40px);
+  }
+}
+
 @media (min-width: 992px) {
   .main-content-container {
     margin-left: 25%; /* Account for sidebar */
@@ -251,69 +370,37 @@
   }
 
   .content-wrapper {
+    padding: 20px;
     padding-bottom: 0;
   }
 
   .stories-section {
-    padding: 20px 0;
-  }
-
-  .stories-container {
-    padding: 0 30px;
-  }
-
-  .post-container {
-    margin: 0 auto;
+    border-radius: 14px;
+    margin: 20px auto;
+    width: calc(100% - 40px);
     max-width: 600px;
-    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  
+  .post-wrapper {
+    margin: 0 auto 25px;
   }
 }
 
 /* Animation Enhancements */
 [data-aos] {
-  transition-property: transform, opacity;
+  transition-property: transform, opacity, filter;
 }
 
-/* Dark Theme Text Colors */
-.post-header, .post-caption, .post-comments, .post-actions {
-  color: #e0e0e0;
-}
-
-/* Story Ring Colors */
-.story-ring {
-  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-}
-
-/* Loading States */
-.loading-post {
-  background-color: rgba(42, 42, 53, 0.8);
-  backdrop-filter: blur(5px);
-  border-radius: 12px;
-  height: 400px;
-  margin: 15px;
-  animation: pulse 1.5s infinite;
-}
-
+/* Loading Animation */
 @keyframes pulse {
   0% { opacity: 0.6; }
   50% { opacity: 0.3; }
   100% { opacity: 0.6; }
 }
 
-/* Notification Badge Animation */
-.notification-badge {
-  transition: all 0.3s ease;
-}
-
-/* Hover Effects */
-.your-story:hover, .story-container:hover {
-  transform: scale(1.05);
-  transition: transform 0.2s ease;
-}
-
-.scroll-button:hover {
-  transform: translateY(-50%) scale(1.1);
-  transition: transform 0.2s ease;
+.post-skeleton div {
+  animation: pulse 1.5s infinite ease-in-out;
 }
 
 /* Floating Animation */
@@ -325,4 +412,25 @@
 
 .floating {
   animation: float 6s ease-in-out infinite;
+}
+
+/* Scrollbar Styles (for browsers that support it) */
+@media (min-width: 992px) {
+  .main-content-container::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .main-content-container::-webkit-scrollbar-track {
+    background: rgba(26, 26, 35, 0.5);
+    border-radius: 10px;
+  }
+
+  .main-content-container::-webkit-scrollbar-thumb {
+    background: rgba(74, 74, 85, 0.7);
+    border-radius: 10px;
+  }
+
+  .main-content-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(94, 94, 105, 0.9);
+  }
 }

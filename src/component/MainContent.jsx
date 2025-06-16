@@ -21,6 +21,7 @@ import 'aos/dist/aos.css';
 
 function MainContent() {
   const storiesRef = useRef(null);
+  const mainContainerRef = useRef(null);
   const dispatch = useDispatch();
   const posts = useSelector((state) => state.post.posts);
   const user = useSelector((state) => state.user.user);
@@ -28,7 +29,7 @@ function MainContent() {
   const [teriStory, setTeriStory] = useState(yourStory);
   const socket = useSocket();
   const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
   const [allStory, setAllStory] = useState([]);
   const [searchParams] = useSearchParams();
   const [notifications, setNotifications] = useState(0);
@@ -37,6 +38,8 @@ function MainContent() {
   const showCall = useSelector((state) => state.call.showCall);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
   const [backgroundIndex, setBackgroundIndex] = useState(0);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [isScrolling, setIsScrolling] = useState(false);
   let postId = searchParams.get("id");
   const postRefs = useRef({});
   let navigate = useNavigate();
@@ -65,19 +68,57 @@ function MainContent() {
     }
   }, []);
 
-  // Animate background change
+  // Handle scroll progress for background animation
   useEffect(() => {
-    const interval = setInterval(() => {
-      setBackgroundIndex((prev) => (prev + 1) % backgrounds.length);
-    }, 15000); // Change every 15 seconds
+    const handleScroll = () => {
+      if (mainContainerRef.current) {
+        const { scrollTop, scrollHeight, clientHeight } = mainContainerRef.current;
+        const progress = scrollTop / (scrollHeight - clientHeight);
+        setScrollProgress(progress);
+        setIsScrolling(true);
+        
+        // Change background based on scroll progress
+        const newIndex = Math.floor(progress * backgrounds.length) % backgrounds.length;
+        if (newIndex !== backgroundIndex) {
+          setBackgroundIndex(newIndex);
+        }
+        
+        // Reset scrolling state after delay
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => setIsScrolling(false), 100);
+      }
+    };
     
-    return () => clearInterval(interval);
-  }, [backgrounds.length]);
+    let scrollTimeout;
+    const container = mainContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+    }
+    
+    return () => {
+      if (container) {
+        container.removeEventListener('scroll', handleScroll);
+      }
+      clearTimeout(scrollTimeout);
+    };
+  }, [backgroundIndex]);
+
+  // Animate background change when not scrolling
+  useEffect(() => {
+    if (!isScrolling) {
+      const interval = setInterval(() => {
+        setBackgroundIndex((prev) => (prev + 1) % backgrounds.length);
+      }, 15000); // Change every 15 seconds
+      
+      return () => clearInterval(interval);
+    }
+  }, [isScrolling, backgrounds.length]);
 
   // Handle window resize
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 992);
+      checkScrollPosition();
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -100,6 +141,16 @@ function MainContent() {
         left: scrollAmount,
         behavior: 'smooth'
       });
+      
+      // Add momentum effect
+      setTimeout(() => {
+        if (storiesRef.current) {
+          storiesRef.current.scrollBy({
+            left: direction === 'left' ? -50 : 50,
+            behavior: 'smooth'
+          });
+        }
+      }, 300);
     }
   };
 
@@ -107,9 +158,8 @@ function MainContent() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        await fetchPost(user.token,dispatch,navigate);
+        await fetchPost(user.token, dispatch, navigate);
         const storyData = await fetchStory(user.token);
-        console.log(storyData);
         
         if (storyData) {
           setAllStory(storyData);
@@ -120,7 +170,7 @@ function MainContent() {
     };
     
     fetchData();
-  }, [dispatch]);
+  }, [dispatch, user.token, navigate]);
 
   // Handle socket notifications
   useEffect(() => {
@@ -147,10 +197,12 @@ function MainContent() {
   // Check for post ID in URL and scroll to it
   useEffect(() => {
     if (postId && postRefs.current[postId]) {
-      postRefs.current[postId].scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      });
+      setTimeout(() => {
+        postRefs.current[postId].scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }, 500); // Delay to ensure posts are loaded
     }
   }, [postId, posts]);
 
@@ -180,25 +232,29 @@ function MainContent() {
     handleNavigation("/notification", true);
     setNotifications(0);
   };
-  useEffect(()=>{
-    console.log(posts); 
-  },[posts])
+
   return (
-    <div className='main-content-container ms-0 me-auto'>
+    <div 
+      className='main-content-container ms-0' 
+      ref={mainContainerRef}
+    >
       {/* Animated Background Layer */}
       <motion.div 
         className="animated-background"
         initial={{ opacity: 0 }}
         animate={{ 
-          opacity: 0.15,
+          opacity: 0.2,
           background: backgrounds[backgroundIndex]
         }}
-        transition={{ duration: 3, ease: "easeInOut" }}
+        transition={{ 
+          duration: isScrolling ? 1 : 3, 
+          ease: "easeInOut" 
+        }}
       />
       
-      {/* Floating Particles */}
+      {/* Floating Particles with scroll-based movement */}
       <div className="particles">
-        {[...Array(15)].map((_, i) => (
+        {[...Array(20)].map((_, i) => (
           <motion.div
             key={i}
             className="particle"
@@ -209,11 +265,11 @@ function MainContent() {
               opacity: 0
             }}
             animate={{
-              x: Math.random() * 100,
-              y: Math.random() * 100,
+              x: Math.random() * 100 + (scrollProgress * 50),
+              y: Math.random() * 100 + (scrollProgress * 30),
               opacity: Math.random() * 0.3 + 0.1,
               transition: {
-                duration: Math.random() * 20 + 10,
+                duration: isScrolling ? 0.5 : Math.random() * 20 + 10,
                 repeat: Infinity,
                 repeatType: "reverse",
                 ease: "linear"
@@ -224,11 +280,20 @@ function MainContent() {
               top: `${Math.random() * 100}%`,
               width: `${Math.random() * 10 + 5}px`,
               height: `${Math.random() * 10 + 5}px`,
-              background: backgrounds[Math.floor(Math.random() * backgrounds.length)]
+              background: backgrounds[Math.floor(Math.random() * backgrounds.length)],
+              zIndex: Math.floor(Math.random() * 3)
             }}
           />
         ))}
       </div>
+
+      {/* Scroll Progress Indicator */}
+      <motion.div 
+        className="scroll-progress"
+        initial={{ width: 0 }}
+        animate={{ width: `${scrollProgress * 100}%` }}
+        transition={{ duration: 0.2 }}
+      />
 
       <AnimatePresence>
         {showCall && (
@@ -258,7 +323,7 @@ function MainContent() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              Chat Fight
+              SocialSphere
             </motion.h1>
             <div className='header-icons'>
               <div className='message-icon'>
@@ -279,7 +344,7 @@ function MainContent() {
                       animate={{ scale: 1 }}
                       transition={{ type: 'spring', stiffness: 500 }}
                     >
-                      {messageNoti}
+                      {messageNoti > 9 ? '9+' : messageNoti}
                     </motion.span>
                   )}
                 </SidebarItem>
@@ -299,7 +364,7 @@ function MainContent() {
                       animate={{ scale: 1 }}
                       transition={{ type: 'spring', stiffness: 500 }}
                     >
-                      {notifications}
+                      {notifications > 9 ? '9+' : notifications}
                     </motion.span>
                   )}
                 </SidebarItem>
@@ -310,17 +375,20 @@ function MainContent() {
       )}
 
       <div className="content-wrapper">
-        {/* Stories Section */}
+        {/* Stories Section with Enhanced Scroll */}
         <div className="stories-section">
           {canScrollLeft && (
             <motion.button 
               className="scroll-button left"
               onClick={() => scrollStories('left')}
-              whileHover={{ scale: 1.1, backgroundColor: '#3a3a4a' }}
+              whileHover={{ scale: 1.1, backgroundColor: 'rgba(74, 74, 85, 0.9)' }}
               whileTap={{ scale: 0.9 }}
               data-aos="fade-right"
+              aria-label="Scroll stories left"
             >
-              &#8249;
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
             </motion.button>
           )}
           
@@ -347,28 +415,39 @@ function MainContent() {
                 }
               }}
               data-aos="fade-up"
+              aria-label="Your story"
             >
               <motion.div 
                 className="story-avatar"
                 whileHover={{ rotate: 5 }}
+                style={{
+                  background: yourStory && yourStory.length > 0 
+                    ? 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)'
+                    : 'linear-gradient(45deg, #667eea, #764ba2)'
+                }}
               >
                 <img 
                   src={user?.avatar?.url || ''} 
-                  alt="user" 
+                  alt="Your profile" 
                   className="avatar-image" 
+                  loading="lazy"
                 />
-                <motion.div 
-                  className='add-story'
-                  whileHover={{ scale: 1.2, rotate: 90 }}
-                >
-                  <span>+</span>
-                </motion.div>
+                {(!yourStory || yourStory.length === 0) && (
+                  <motion.div 
+                    className='add-story'
+                    whileHover={{ scale: 1.2, rotate: 90 }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </motion.div>
+                )}
               </motion.div>
               <motion.p 
                 className="story-username"
                 whileHover={{ color: '#ffffff' }}
               >
-                you
+                Your Story
               </motion.p>
             </motion.div>
             
@@ -395,16 +474,19 @@ function MainContent() {
             <motion.button 
               className="scroll-button right"
               onClick={() => scrollStories('right')}
-              whileHover={{ scale: 1.1, backgroundColor: '#3a3a4a' }}
+              whileHover={{ scale: 1.1, backgroundColor: 'rgba(74, 74, 85, 0.9)' }}
               whileTap={{ scale: 0.9 }}
               data-aos="fade-left"
+              aria-label="Scroll stories right"
             >
-              &#8250;
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </motion.button>
           )}
         </div>
 
-        {/* Posts Section */}
+        {/* Posts Section with Enhanced Design */}
         <div className="posts-container">
           {posts && posts.map((element, index) => (
             <motion.div
@@ -416,9 +498,10 @@ function MainContent() {
               data-aos="fade-up"
               data-aos-delay={index * 50}
               whileHover={{ 
-                boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3)',
+                boxShadow: '0 12px 28px rgba(0, 0, 0, 0.3)',
                 y: -5
               }}
+              className="post-wrapper"
             >
               <Post
                 youLiked={element.youLiked || false}
@@ -429,9 +512,32 @@ function MainContent() {
                 userName={element.createdBy?._id === user?._id ? "you" : element.createdBy?.userName || 'Unknown'}
                 createdAt={element.createdAt}
                 comment={element.comment || []}
+                caption={element.caption || ''}
               />
             </motion.div>
           ))}
+          
+          {/* Loading Skeleton for Posts */}
+          {posts.length === 0 && (
+            [...Array(3)].map((_, index) => (
+              <motion.div
+                key={`skeleton-${index}`}
+                className="post-skeleton"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <div className="skeleton-header">
+                  <div className="skeleton-avatar"></div>
+                  <div className="skeleton-user"></div>
+                </div>
+                <div className="skeleton-media"></div>
+                <div className="skeleton-actions"></div>
+                <div className="skeleton-caption"></div>
+                <div className="skeleton-comments"></div>
+              </motion.div>
+            ))
+          )}
         </div>
       </div>
 
