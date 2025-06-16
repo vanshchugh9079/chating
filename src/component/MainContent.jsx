@@ -269,7 +269,7 @@ function MainContent() {
               y: Math.random() * 100 + (scrollProgress * 30),
               opacity: Math.random() * 0.3 + 0.1,
               transition: {
-                duration: isScrolling ? 0.5 : Math.random() * 20 + 10,
+                duration: isScrolling ? 0.1 : Math.random() * 1 + 10,
                 repeat: Infinity,
                 repeatType: "reverse",
                 ease: "linear"
@@ -376,7 +376,7 @@ function MainContent() {
 
       <div className="content-wrapper">
         {/* Stories Section with Enhanced Scroll */}
-        <div className="stories-section">
+        <div className="stories-section w-100">
           {canScrollLeft && (
             <motion.button 
               className="scroll-button left"
@@ -393,7 +393,7 @@ function MainContent() {
           )}
           
           <div 
-            className="stories-container" 
+            className="stories-container w-100" 
             ref={storiesRef}
             onScroll={checkScrollPosition}
           >
@@ -487,7 +487,7 @@ function MainContent() {
         </div>
 
         {/* Posts Section with Enhanced Design */}
-        <div className="posts-container">
+        <div className="posts-container w-100">
           {posts && posts.map((element, index) => (
             <motion.div
               key={element._id || index}
