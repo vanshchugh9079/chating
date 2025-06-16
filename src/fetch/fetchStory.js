@@ -7,6 +7,6 @@ let fetchStory=async(token)=>{
         }
     })
     console.log(response);
-    return response;
+    return response.data.data;
 }
 export default fetchStory;
