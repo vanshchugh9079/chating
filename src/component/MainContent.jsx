@@ -56,6 +56,8 @@ function MainContent() {
   const particlesInit = useCallback(async (engine) => {
     try {
       await loadFull(engine);
+      console.log("only for update");
+      
     } catch (error) {
       console.error("Failed to initialize particles:", error);
     }
