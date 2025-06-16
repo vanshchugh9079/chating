@@ -18,13 +18,23 @@ import Call from './Call';
 import { motion, AnimatePresence } from 'framer-motion';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
+import Particles from 'react-tsparticles';
+import { loadFull } from 'tsparticles';
+import { useTheme } from '../context/ThemeContext';
+
+// Background gradient colors based on theme
+const backgroundGradients = {
+  dark: ['#0f0f13', '#1a1a23', '#2a2a35'],
+  light: ['#f5f7fa', '#e4e8f0', '#d1d9e8'],
+  colorful: ['#ff9a9e', '#fad0c4', '#fbc2eb']
+};
 
 function MainContent() {
   const storiesRef = useRef(null);
   const dispatch = useDispatch();
-  const posts = useSelector((state) => state.post.posts);
-  const user = useSelector((state) => state.user.user);
-  const yourStory = useSelector((state) => state.yourStory.story);
+  const posts = useSelector((state) => state.post?.posts || []);
+  const user = useSelector((state) => state.user?.user || {});
+  const yourStory = useSelector((state) => state.yourStory?.story || []);
   const [teriStory, setTeriStory] = useState(yourStory);
   const socket = useSocket();
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -34,243 +44,232 @@ function MainContent() {
   const [notifications, setNotifications] = useState(0);
   const [messageNoti, setMessageNoti] = useState(0);
   const [allNotification, setAllNotification] = useState([]);
-  const showCall = useSelector((state) => state.call.showCall);
+  const showCall = useSelector((state) => state.call?.showCall || false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
+  const [hoveredStory, setHoveredStory] = useState(null);
+  const [backgroundIndex, setBackgroundIndex] = useState(0);
+  const { theme = 'dark' } = useTheme(); // Default to dark theme if not provided
   let postId = searchParams.get("id");
   const postRefs = useRef({});
   let navigate = useNavigate();
-
-  // Initialize AOS
-  useEffect(() => {
-    AOS.init({
-      duration: 800,
-      easing: 'ease-in-out',
-      once: false
-    });
+  
+  const particlesInit = useCallback(async (engine) => {
+    try {
+      await loadFull(engine);
+    } catch (error) {
+      console.error("Failed to initialize particles:", error);
+    }
   }, []);
 
-  // Handle window resize
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 992);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+  const particlesLoaded = useCallback(async (container) => {
+    // Optional callback, no need for error handling here
   }, []);
 
-  const handleNavigation = useCallback((path, adjustWidth = false) => {
-    navigate(path);
+  // Safe navigation function
+  const handleNavigation = useCallback((path, state) => {
+    try {
+      navigate(path, { state });
+    } catch (error) {
+      console.error("Navigation error:", error);
+    }
   }, [navigate]);
 
-  // Socket event handlers
-  useEffect(() => {
-    if (socket) {
-      const handleMessageReceived = (data) => setMessageNoti((prev) => prev + 1);
-      const handleNotification = (data) => {
-        setNotifications((prev) => prev + 1);
-        setAllNotification((prev) => [...prev, data.notification]);
-      };
-      const handleYourNotification = (data) => {
-        setNotifications((prev) => prev - 1);
-        setAllNotification((prev) => prev.filter((e) => e._id !== data.notification._id));
-      };
-      const handleRead = (data) => data && setAllNotification(data);
-
-      socket.on("unfollow", handleNotification);
-      socket.on("follow", handleNotification);
-      socket.on('message-recieved', handleMessageReceived);
-      socket.on("follow-request", handleNotification);
-      socket.on("accept-request", handleNotification);
-      socket.on("liked-post", handleNotification);
-      socket.on("comment-post", handleNotification);
-      socket.on("accept-request-success", handleYourNotification);
-      socket.on("decline-request-success", handleYourNotification);
-      socket.on("read-notification", handleRead);
-
-      return () => {
-        socket.off('message-recieved', handleMessageReceived);
-        socket.off("follow", handleNotification);
-        socket.off("unfollow", handleNotification);
-        socket.off("follow-request", handleNotification);
-        socket.off("accept-request", handleNotification);
-        socket.off("accept-request-success", handleYourNotification);
-        socket.off("decline-request-success", handleYourNotification);
-        socket.off("read-notification", handleRead);
-        socket.off("liked-post", handleNotification);
-        socket.off("comment-post", handleNotification);
-      };
-    }
-  }, [socket]);
-
-  const goNotification = useCallback(() => {
-    dispatch(showNoti(true));
-  }, [dispatch]);
-
-  // Scroll to specific post if ID in URL
-  useEffect(() => {
-    if (postId && postRefs.current[postId]) {
-      setTimeout(() => {
-        postRefs.current[postId].scrollIntoView({
-          behavior: "smooth",
-          block: "center"
-        });
-      }, 300);
-    }
-  }, [postId, posts]);
-
-  // Fetch notifications
-  useEffect(() => {
-    dispatch(showMessage(false));
-    const fetchNotifications = async () => {
-      try {
-        let sum = 0;
-        const mesResponse = await api.get("/notification/get/message", {
-          headers: { 'Authorization': `Bearer ${user.token}` },
-        });
-        setMessageNoti(mesResponse.data.data.length);
-
-        const notificationTypes = ["post", "reel", "follow", "request", "information"];
-        const arr = [];
-        for (const type of notificationTypes) {
-          const response = await api.get(`/notification/get/${type}`, {
-            headers: { 'Authorization': `Bearer ${user.token}` },
-          });
-          response.data.data.forEach((element) => {
-            if (!element.seen) sum += 1;
-          });
-          arr.push(...response.data.data);
-        }
-        setAllNotification(arr);
-        setNotifications(sum);
-      } catch (error) {
-        console.error('Error fetching notifications:', error);
+  // Safe scroll to post function
+  const scrollToPost = useCallback((id) => {
+    try {
+      if (postRefs.current[id]) {
+        postRefs.current[id].scrollIntoView({ behavior: 'smooth' });
       }
-    };
-
-    fetchNotifications();
-  }, [dispatch, user.token]);
-
-  // Fetch posts on mount
-  useEffect(() => {
-    fetchPost(user.token, dispatch, navigate);
-  }, [user.token, dispatch, navigate]);
-
-  // Fetch stories
-  useEffect(() => {
-    (async () => {
-      try {
-        const response = await fetchStory(user.token);
-        const storyData = response.data.data;
-
-        // Group stories by user name
-        const storyMap = {};
-
-        storyData.forEach((story) => {
-          const userName = story.user?.name;
-          if (userName) {
-            if (!storyMap[userName]) {
-              storyMap[userName] = [];
-            }
-            storyMap[userName].push(story);
-          }
-        });
-
-        // Convert grouped stories into an array
-        setAllStory(Object.values(storyMap));
-
-      } catch (error) {
-        console.error("Error fetching stories:", error);
-      }
-    })();
-  }, [user.token]);
-
-  // Handle socket events for stories
-  useEffect(() => {
-    if (socket) {
-      const addedStory = (data) => {
-        if (data) {
-          setAllStory((prev) => {
-            const updatedStories = [...prev];
-            const userName = data.user?.name;
-            if (userName) {
-              const existingGroup = updatedStories.find(group => group[0]?.user?.name === userName);
-              if (existingGroup) {
-                existingGroup.push(data);
-              } else {
-                updatedStories.push([data]);
-              }
-            }
-            return updatedStories;
-          });
-        }
-      };
-
-      const onAddedYouStory = (data) => {
-        setTeriStory((prev) => [...prev, data]);
-      };
-
-      socket.on("new-story", addedStory);
-      socket.on("story-added", onAddedYouStory);
-
-      return () => {
-        socket.off("new-story", addedStory);
-        socket.off("story-added", onAddedYouStory);
-      };
+    } catch (error) {
+      console.error("Scroll error:", error);
     }
-  }, [socket]);
+  }, []);
 
-  // Fetch user's own story
+  // Background animation cycling with error handling
   useEffect(() => {
-    let getYourStory = async () => {
-      try {
-        let response = await api.get("/story/get/" + user._id, {
-          headers: {
-            'Authorization': `Bearer ${user.token}`
-          }
+    let interval;
+    try {
+      interval = setInterval(() => {
+        setBackgroundIndex((prev) => {
+          const gradients = backgroundGradients[theme] || backgroundGradients.dark;
+          return (prev + 1) % gradients.length;
         });
-        setTeriStory(response.data.data);
-      } catch (error) {
-        console.error("Error fetching your story:", error);
-      }
-    };
-    getYourStory();
-  }, [yourStory, user._id, user.token]);
+      }, 10000);
+    } catch (error) {
+      console.error("Background animation error:", error);
+    }
+    return () => clearInterval(interval);
+  }, [theme]);
 
-  // Scroll stories section
-  const scrollStories = useCallback((direction) => {
-    const scrollAmount = 300;
-    if (storiesRef.current) {
-      storiesRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth',
+  // Initialize AOS with error handling
+  useEffect(() => {
+    try {
+      AOS.init({
+        duration: 800,
+        easing: 'ease-in-out-quart',
+        once: false,
+        mirror: true,
+        anchorPlacement: 'top-bottom'
       });
+    } catch (error) {
+      console.error("AOS initialization error:", error);
     }
   }, []);
 
-  // Update scroll buttons visibility
-  const updateScrollButtons = useCallback(() => {
-    if (storiesRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = storiesRef.current;
-      setCanScrollLeft(scrollLeft > 0);
-      setCanScrollRight(scrollLeft + clientWidth < scrollWidth);
-    }
-  }, []);
-
+  // Handle window resize with debounce and error handling
   useEffect(() => {
-    const ref = storiesRef.current;
-    if (ref) {
-      ref.addEventListener('scroll', updateScrollButtons);
-      updateScrollButtons(); // Initial check
-    }
-    return () => {
-      if (ref) {
-        ref.removeEventListener('scroll', updateScrollButtons);
+    let timeoutId = null;
+    const handleResize = () => {
+      try {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          setIsMobile(window.innerWidth < 992);
+        }, 200);
+      } catch (error) {
+        console.error("Resize handler error:", error);
       }
     };
-  }, [updateScrollButtons]);
+    
+    try {
+      window.addEventListener('resize', handleResize);
+    } catch (error) {
+      console.error("Event listener error:", error);
+    }
+    
+    return () => {
+      try {
+        window.removeEventListener('resize', handleResize);
+        clearTimeout(timeoutId);
+      } catch (error) {
+        console.error("Cleanup error:", error);
+      }
+    };
+  }, []);
+
+  // Handle postId parameter
+  useEffect(() => {
+    if (postId) {
+      try {
+        scrollToPost(postId);
+      } catch (error) {
+        console.error("Failed to scroll to post:", error);
+      }
+    }
+  }, [postId, scrollToPost]);
+
+  // Safe story scrolling function
+  const scrollStories = useCallback((direction) => {
+    try {
+      if (!storiesRef.current) return;
+      
+      const scrollAmount = direction === 'left' ? -300 : 300;
+      storiesRef.current.scrollBy({
+        left: scrollAmount,
+        behavior: 'smooth'
+      });
+      
+      // Update scroll buttons visibility after a delay
+      setTimeout(() => {
+        if (storiesRef.current) {
+          const { scrollLeft, scrollWidth, clientWidth } = storiesRef.current;
+          setCanScrollLeft(scrollLeft > 0);
+          setCanScrollRight(scrollLeft < scrollWidth - clientWidth);
+        }
+      }, 300);
+    } catch (error) {
+      console.error("Story scrolling error:", error);
+    }
+  }, []);
+
+  // Check scroll position on stories container
+  useEffect(() => {
+    const checkScrollPosition = () => {
+      try {
+        if (storiesRef.current) {
+          const { scrollLeft, scrollWidth, clientWidth } = storiesRef.current;
+          setCanScrollLeft(scrollLeft > 0);
+          setCanScrollRight(scrollLeft < scrollWidth - clientWidth);
+        }
+      } catch (error) {
+        console.error("Scroll position check error:", error);
+      }
+    };
+
+    try {
+      const currentRef = storiesRef.current;
+      if (currentRef) {
+        currentRef.addEventListener('scroll', checkScrollPosition);
+        checkScrollPosition(); // Initial check
+      }
+      
+      return () => {
+        if (currentRef) {
+          currentRef.removeEventListener('scroll', checkScrollPosition);
+        }
+      };
+    } catch (error) {
+      console.error("Scroll event listener error:", error);
+    }
+  }, []);
+
+  // Safe notification navigation
+  const goNotification = useCallback(() => {
+    try {
+      dispatch(showNoti(true));
+      handleNavigation("/notification", true);
+    } catch (error) {
+      console.error("Notification navigation error:", error);
+    }
+  }, [dispatch, handleNavigation]);
+
+  // Get current gradient colors safely
+  const getCurrentGradient = useCallback(() => {
+    try {
+      const gradients = backgroundGradients[theme] || backgroundGradients.dark;
+      return `linear-gradient(135deg, ${gradients[backgroundIndex]}, ${gradients[(backgroundIndex + 1) % gradients.length]})`;
+    } catch (error) {
+      console.error("Gradient calculation error:", error);
+      return `linear-gradient(135deg, #0f0f13, #1a1a23)`;
+    }
+  }, [theme, backgroundIndex]);
 
   return (
-    <div className='main-content-container w-100 me-auto m-0 '>
+    <div className={`main-content-container ${theme}-theme`}>
+      {/* Animated Background Elements */}
+      <div 
+        className="background-gradient" 
+        style={{ background: getCurrentGradient() }}
+      ></div>
+      
+      {theme === 'colorful' && (
+        <Particles
+          id="tsparticles"
+          init={particlesInit}
+          loaded={particlesLoaded}
+          options={{
+            fullScreen: { enable: false },
+            particles: {
+              number: { value: 30, density: { enable: true, value_area: 800 } },
+              color: { value: ["#ff9a9e", "#fad0c4", "#fbc2eb", "#a6c1ee", "#f6d365"] },
+              shape: { type: "circle" },
+              opacity: { value: 0.3, random: true, anim: { enable: true, speed: 1 } },
+              size: { value: 10, random: true, anim: { enable: true, speed: 2 } },
+              line_linked: { enable: true, distance: 150, color: "#ffffff", opacity: 0.2 },
+              move: { enable: true, speed: 1, direction: "none" }
+            },
+            interactivity: {
+              detect_on: "canvas",
+              events: {
+                onhover: { enable: true, mode: "bubble" },
+                onclick: { enable: true, mode: "push" },
+                resize: true
+              }
+            },
+            retina_detect: true
+          }}
+        />
+      )}
+
       <AnimatePresence>
         {showCall && (
           <motion.div 
@@ -278,11 +277,28 @@ function MainContent() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
           >
             <Call />
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Floating Notification Bubble */}
+      {notifications > 0 && (
+        <motion.div 
+          className="floating-notification"
+          initial={{ scale: 0, y: 50 }}
+          animate={{ scale: 1, y: 0 }}
+          exit={{ scale: 0 }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={goNotification}
+        >
+          <span>{notifications}</span>
+          <div className="pulse-effect"></div>
+        </motion.div>
+      )}
 
       {/* Mobile Header */}
       {isMobile && (
@@ -290,13 +306,22 @@ function MainContent() {
           className='mobile-header'
           initial={{ y: -50 }}
           animate={{ y: 0 }}
-          transition={{ type: 'spring', stiffness: 300 }}
-          data-aos="fade-down"
+          transition={{ type: 'spring' }}
         >
           <div className='header-content'>
-            <h1 className='app-title'>Chat Fight</h1>
+            <motion.h1 
+              className='app-title'
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              ChatFight
+            </motion.h1>
             <div className='header-icons'>
-              <div className='message-icon'>
+              <motion.div 
+                className='message-icon'
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
                 <SidebarItem
                   icon={faMessage}
                   label=""
@@ -312,14 +337,17 @@ function MainContent() {
                       className="notification-badge"
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      transition={{ type: 'spring', stiffness: 500 }}
                     >
                       {messageNoti}
                     </motion.span>
                   )}
                 </SidebarItem>
-              </div>
-              <div className='notification-icon'>
+              </motion.div>
+              <motion.div 
+                className='notification-icon'
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
                 <SidebarItem
                   icon={faBell}
                   label=""
@@ -332,13 +360,12 @@ function MainContent() {
                       className="notification-badge"
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      transition={{ type: 'spring', stiffness: 500 }}
                     >
                       {notifications}
                     </motion.span>
                   )}
                 </SidebarItem>
-              </div>
+              </motion.div>
             </div>
           </div>
         </motion.div>
@@ -351,11 +378,12 @@ function MainContent() {
             <motion.button 
               className="scroll-button left"
               onClick={() => scrollStories('left')}
-              whileHover={{ scale: 1.1 }}
+              whileHover={{ scale: 1.2 }}
               whileTap={{ scale: 0.9 }}
-              data-aos="fade-right"
             >
-              &#8249;
+              <svg width="16" height="16" viewBox="0 0 24 24">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
             </motion.button>
           )}
           
@@ -363,91 +391,127 @@ function MainContent() {
             <motion.div 
               className="your-story"
               whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onHoverStart={() => setHoveredStory('your-story')}
+              onHoverEnd={() => setHoveredStory(null)}
               onClick={() => {
-                if (teriStory.length === 0) {
-                  dispatch(setShowModel(true));
-                } else {
-                  dispatch(setStory({
-                    name: teriStory[0].user.name,
-                    media: teriStory,
-                    avatar: teriStory[0].user.avatar,
-                    you: true
-                  }));
-                  dispatch(setShowStory(true));
+                try {
+                  if (teriStory.length === 0) {
+                    dispatch(setShowModel(true));
+                  } else {
+                    dispatch(setStory({
+                      name: teriStory[0]?.user?.name || "You",
+                      media: teriStory,
+                      avatar: teriStory[0]?.user?.avatar || user.avatar?.url,
+                      you: true
+                    }));
+                    dispatch(setShowStory(true));
+                  }
+                } catch (error) {
+                  console.error("Story click handler error:", error);
                 }
               }}
-              data-aos="fade-up"
             >
               <div className="story-avatar">
-                <img 
-                  src={user.avatar.url} 
+                <motion.img 
+                  src={user.avatar?.url || ''} 
                   alt="user" 
                   className="avatar-image" 
+                  onError={(e) => {
+                    e.target.src = 'default-avatar.png'; // Fallback image
+                  }}
                 />
-                <div className='add-story'>
-                  <span>+</span>
-                </div>
+                {teriStory.length === 0 && (
+                  <motion.div className='add-story'>
+                    <span>+</span>
+                  </motion.div>
+                )}
               </div>
-              <p className="story-username">you</p>
+              <motion.p className="story-username">
+                you
+              </motion.p>
             </motion.div>
             
-            {allStory.map((storyGroup, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.05 }}
-                data-aos="fade-up"
-                data-aos-delay={index * 50}
-              >
-                <Story
-                  media={storyGroup}
-                  name={storyGroup[0]?.user?.name}
-                  avatar={storyGroup[0]?.user?.avatar}
-                />
-              </motion.div>
-            ))}
+            {Array.isArray(allStory) && allStory.map((storyGroup, index) => {
+              const userName = storyGroup[0]?.user?.name || "Unknown";
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <Story
+                    media={storyGroup}
+                    name={userName}
+                    avatar={storyGroup[0]?.user?.avatar}
+                    isHovered={hoveredStory === userName}
+                  />
+                </motion.div>
+              );
+            })}
           </div>
           
           {canScrollRight && (
             <motion.button 
               className="scroll-button right"
               onClick={() => scrollStories('right')}
-              whileHover={{ scale: 1.1 }}
+              whileHover={{ scale: 1.2 }}
               whileTap={{ scale: 0.9 }}
-              data-aos="fade-left"
             >
-              &#8250;
+              <svg width="16" height="16" viewBox="0 0 24 24">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
             </motion.button>
           )}
         </div>
 
         {/* Posts Section */}
         <div className="posts-container">
-          {posts.map((element, index) => (
+          {Array.isArray(posts) && posts.map((element, index) => (
             <motion.div
-              key={element._id}
-              ref={(el) => (postRefs.current[element._id] = el)}
+              key={element?._id || index}
+              ref={(el) => element?._id && (postRefs.current[element._id] = el)}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
-              data-aos="fade-up"
-              data-aos-delay={index * 50}
+              className="post-wrapper"
             >
               <Post
-                youLiked={element.youLiked}
-                likes={element.likes.length}
-                _id={element._id}
-                src={element.media.url}
-                avatar={element.createdBy.avatar.url}
-                userName={element.createdBy._id === user._id ? "you" : element.createdBy.userName}
-                createdAt={element.createdAt}
-                comment={element.comment}
+                youLiked={element?.youLiked || false}
+                likes={element?.likes?.length || 0}
+                _id={element?._id}
+                src={element?.media?.url}
+                avatar={element?.createdBy?.avatar?.url}
+                userName={element?.createdBy?._id === user?._id ? "you" : element?.createdBy?.userName}
+                createdAt={element?.createdAt}
+                comment={element?.comment}
               />
             </motion.div>
           ))}
         </div>
       </div>
+
+      {/* Floating Action Button for Mobile */}
+      {isMobile && (
+        <motion.div 
+          className="floating-action-btn"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => {
+            try {
+              dispatch(setShowModel(true));
+            } catch (error) {
+              console.error("FAB click error:", error);
+            }
+          }}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </motion.div>
+      )}
 
       {/* Mobile Bottom Navigation */}
       {isMobile && <BottomSidebar />}
