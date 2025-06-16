@@ -9,7 +9,7 @@
   overflow-y: auto;
   scroll-behavior: smooth;
   width: 100%;
-  margin-left: 0 !important; /* Ensure ms-0 works */
+  margin-left: 0 !important;
 }
 
 /* Scroll Progress Indicator */
@@ -17,13 +17,13 @@
   position: fixed;
   top: 0;
   left: 0;
-  height: 3px;
+  height: 4px;
   background: linear-gradient(90deg, #ff758c, #ff7eb3);
   z-index: 1000;
   transition: width 0.1s ease;
 }
 
-/* Animated Background */
+/* Animated Background with Images */
 .animated-background {
   position: fixed;
   top: 0;
@@ -31,10 +31,23 @@
   right: 0;
   bottom: 0;
   z-index: -2;
-  background-size: 200% 200%;
-  filter: blur(30px);
-  opacity: 0.2;
-  transition: background 1.5s ease, opacity 1s ease;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.3;
+  transition: background-image 1.5s ease, opacity 1s ease;
+  filter: blur(8px);
+}
+
+/* Gradient Overlay */
+.background-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  background: linear-gradient(to bottom, rgba(15, 15, 19, 0.9) 0%, rgba(15, 15, 19, 0.7) 100%);
 }
 
 /* Floating Particles */
@@ -131,57 +144,60 @@
 /* Content Wrapper */
 .content-wrapper {
   flex: 1;
-  padding-bottom: 70px; /* Space for bottom navigation */
+  padding-bottom: 70px;
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 /* Stories Section */
 .stories-section {
   background-color: rgba(26, 26, 35, 0.95);
   backdrop-filter: blur(15px);
-  padding: 15px 0;
+  padding: 20px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   position: relative;
   z-index: 10;
   width: 100%;
+  margin: 0 auto;
 }
 
 .stories-container {
   display: flex;
-  gap: 15px;
-  padding: 0 15px;
+  gap: 20px;
+  padding: 0 20px;
   overflow-x: auto;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   scroll-behavior: smooth;
   scroll-snap-type: x proximity;
-  padding-bottom: 5px;
+  padding-bottom: 10px;
 }
 
 .stories-container::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none;
 }
 
 .your-story, .story-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-shrink: 0;
   cursor: pointer;
   scroll-snap-align: start;
 }
 
 .your-story {
-  width: 85px;
-  margin-left: 5px;
+  width: 90px;
+  margin-left: 10px;
 }
 
 .story-avatar {
-  width: 70px;
-  height: 70px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   display: flex;
   justify-content: center;
@@ -204,8 +220,8 @@
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   background-color: #4a4a55;
   border-radius: 50%;
   display: flex;
@@ -220,12 +236,12 @@
 
 .story-username {
   color: #e0e0e0;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   margin: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  max-width: 80px;
+  max-width: 90px;
   text-align: center;
   transition: all 0.3s ease;
   font-weight: 500;
@@ -235,8 +251,8 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background-color: rgba(42, 42, 53, 0.9);
   backdrop-filter: blur(5px);
@@ -254,47 +270,48 @@
 
 .scroll-button:hover {
   background-color: rgba(74, 74, 85, 0.9);
+  transform: translateY(-50%) scale(1.1);
 }
 
 .scroll-button.left {
-  left: 8px;
+  left: 10px;
 }
 
 .scroll-button.right {
-  right: 8px;
+  right: 10px;
 }
 
 /* Posts Section */
 .posts-container {
-  padding: 20px 0;
+  padding: 25px 0;
   display: flex;
   flex-direction: column;
-  gap: 25px;
+  gap: 30px;
   width: 100%;
 }
 
 .post-wrapper {
   background-color: rgba(26, 26, 35, 0.95);
   backdrop-filter: blur(15px);
-  border-radius: 14px;
+  border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
   overflow: hidden;
   margin: 0 auto;
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  width: calc(100% - 30px);
-  max-width: 600px;
+  width: calc(100% - 40px);
+  max-width: 700px;
 }
 
 /* Post Skeleton Loading */
 .post-skeleton {
   background-color: rgba(26, 26, 35, 0.8);
-  border-radius: 14px;
+  border-radius: 16px;
   overflow: hidden;
   margin: 0 auto;
-  width: calc(100% - 30px);
-  max-width: 600px;
-  padding: 15px;
+  width: calc(100% - 40px);
+  max-width: 700px;
+  padding: 20px;
 }
 
 .skeleton-header {
@@ -304,49 +321,49 @@
 }
 
 .skeleton-avatar {
-  width: 40px;
-  height: 40px;
+  width: 45px;
+  height: 45px;
   border-radius: 50%;
   background-color: rgba(42, 42, 53, 0.6);
-  margin-right: 10px;
+  margin-right: 12px;
 }
 
 .skeleton-user {
-  width: 120px;
-  height: 16px;
-  border-radius: 8px;
+  width: 130px;
+  height: 18px;
+  border-radius: 9px;
   background-color: rgba(42, 42, 53, 0.6);
 }
 
 .skeleton-media {
   width: 100%;
-  height: 350px;
+  height: 400px;
   background-color: rgba(42, 42, 53, 0.6);
-  border-radius: 8px;
+  border-radius: 10px;
   margin-bottom: 15px;
 }
 
 .skeleton-actions {
   width: 100%;
-  height: 24px;
+  height: 26px;
   background-color: rgba(42, 42, 53, 0.6);
-  border-radius: 8px;
-  margin-bottom: 10px;
+  border-radius: 10px;
+  margin-bottom: 12px;
 }
 
 .skeleton-caption {
   width: 80%;
-  height: 14px;
+  height: 16px;
   background-color: rgba(42, 42, 53, 0.6);
-  border-radius: 7px;
-  margin-bottom: 10px;
+  border-radius: 8px;
+  margin-bottom: 12px;
 }
 
 .skeleton-comments {
   width: 60%;
-  height: 12px;
+  height: 14px;
   background-color: rgba(42, 42, 53, 0.6);
-  border-radius: 6px;
+  border-radius: 7px;
 }
 
 /* Responsive Adjustments */
@@ -355,14 +372,24 @@
     padding: 0 30px;
   }
   
-  .post-wrapper {
-    width: calc(100% - 40px);
+  .post-wrapper, .post-skeleton {
+    width: calc(100% - 60px);
+  }
+  
+  .story-avatar {
+    width: 90px;
+    height: 90px;
+  }
+  
+  .your-story {
+    width: 100px;
   }
 }
 
 @media (min-width: 992px) {
   .main-content-container {
-    margin-left: 25%; /* Account for sidebar */
+    margin-left: 300px;
+    width: calc(100% - 300px);
   }
 
   .mobile-header {
@@ -370,20 +397,41 @@
   }
 
   .content-wrapper {
-    padding: 20px;
+    padding: 30px;
     padding-bottom: 0;
   }
 
   .stories-section {
-    border-radius: 14px;
-    margin: 20px auto;
-    width: calc(100% - 40px);
-    max-width: 600px;
+    border-radius: 16px;
+    margin: 30px auto;
+    width: calc(100% - 60px);
+    max-width: 800px;
     border: 1px solid rgba(255, 255, 255, 0.08);
   }
   
-  .post-wrapper {
-    margin: 0 auto 25px;
+  .post-wrapper, .post-skeleton {
+    margin: 0 auto 30px;
+    max-width: 700px;
+  }
+  
+  .scroll-button {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .main-content-container {
+    margin-left: 350px;
+    width: calc(100% - 350px);
+  }
+  
+  .content-wrapper {
+    max-width: 1400px;
+  }
+  
+  .post-wrapper, .post-skeleton {
+    max-width: 750px;
   }
 }
 
@@ -414,10 +462,10 @@
   animation: float 6s ease-in-out infinite;
 }
 
-/* Scrollbar Styles (for browsers that support it) */
+/* Scrollbar Styles */
 @media (min-width: 992px) {
   .main-content-container::-webkit-scrollbar {
-    width: 8px;
+    width: 10px;
   }
 
   .main-content-container::-webkit-scrollbar-track {

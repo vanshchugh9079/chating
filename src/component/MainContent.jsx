@@ -46,11 +46,11 @@ function MainContent() {
 
   // Background images for animated background
   const backgrounds = [
-    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    'linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%)',
-    'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-    'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
-    'linear-gradient(135deg, #ffc3a0 0%, #ffafbd 100%)'
+    'url("https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80")',
+    'url("https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80")',
+    'url("https://images.unsplash.com/photo-1428908728789-d2de25dbd4e2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80")',
+    'url("https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80")',
+    'url("https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80")'
   ];
 
   // Initialize AOS with more dynamic settings
@@ -238,19 +238,24 @@ function MainContent() {
       className='main-content-container ms-0 me-auto w-100' 
       ref={mainContainerRef}
     >
-      {/* Animated Background Layer */}
+      {/* Animated Background Layer with Images */}
       <motion.div 
         className="animated-background"
         initial={{ opacity: 0 }}
         animate={{ 
-          opacity: 0.2,
-          background: backgrounds[backgroundIndex]
+          opacity: 0.3,
+          backgroundImage: backgrounds[backgroundIndex],
+          backgroundSize: isMobile ? 'cover' : 'cover',
+          backgroundPosition: 'center'
         }}
         transition={{ 
           duration: isScrolling ? 1 : 3, 
           ease: "easeInOut" 
         }}
       />
+      
+      {/* Gradient Overlay */}
+      <div className="background-overlay"></div>
       
       {/* Floating Particles with scroll-based movement */}
       <div className="particles">
@@ -280,7 +285,7 @@ function MainContent() {
               top: `${Math.random() * 100}%`,
               width: `${Math.random() * 10 + 5}px`,
               height: `${Math.random() * 10 + 5}px`,
-              background: backgrounds[Math.floor(Math.random() * backgrounds.length)],
+              background: `rgba(255, 255, 255, ${Math.random() * 0.3})`,
               zIndex: Math.floor(Math.random() * 3)
             }}
           />
