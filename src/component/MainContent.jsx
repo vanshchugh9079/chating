@@ -107,8 +107,8 @@ function MainContent() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        await fetchPost(dispatch);
-        const storyData = await fetchStory(dispatch);
+        await fetchPost(user.token,dispatch,navigate);
+        const storyData = await fetchStory(user.token);
         if (storyData) {
           setAllStory(storyData);
         }

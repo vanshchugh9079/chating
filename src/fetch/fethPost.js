@@ -9,6 +9,8 @@ let fetchPost = async (token, dispatch,naviagte) => {
                 'Authorization': `Bearer ${token}`
             }
         })
+        console.log(response.data);
+        
         dispatch(setPost(response.data));
     } catch (error) {
         if(error){
