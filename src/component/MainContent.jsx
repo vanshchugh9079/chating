@@ -180,7 +180,7 @@ function MainContent() {
   };
 
   return (
-    <div className='main-content-container'>
+    <div className='main-content-container ms-0 me-auto'>
       {/* Animated Background Layer */}
       <motion.div 
         className="animated-background"
