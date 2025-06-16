@@ -109,6 +109,8 @@ function MainContent() {
       try {
         await fetchPost(user.token,dispatch,navigate);
         const storyData = await fetchStory(user.token);
+        console.log(storyData);
+        
         if (storyData) {
           setAllStory(storyData);
         }
@@ -178,7 +180,9 @@ function MainContent() {
     handleNavigation("/notification", true);
     setNotifications(0);
   };
-
+  useEffect(()=>{
+    console.log(posts); 
+  },[posts])
   return (
     <div className='main-content-container ms-0 me-auto'>
       {/* Animated Background Layer */}
