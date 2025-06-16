@@ -3,7 +3,7 @@ import '../css/mainContent.css';
 import Post from './Post';
 import Story from './Story';
 import { useDispatch, useSelector } from 'react-redux';
-import fetchPost from '../fetch/fethPost';
+import fetchPost from '../fetch/fetchPost';
 import { setShowModel } from '../redux/slice/showCreateModel';
 import fetchStory from '../fetch/fetchStory';
 import { useSocket } from "../socket/SocketContext";
@@ -18,23 +18,13 @@ import Call from './Call';
 import { motion, AnimatePresence } from 'framer-motion';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
-import Particles from 'react-tsparticles';
-import { loadFull } from 'tsparticles';
-import { useTheme } from '../context/ThemeContext';
-
-// Background gradient colors based on theme
-const backgroundGradients = {
-  dark: ['#0f0f13', '#1a1a23', '#2a2a35'],
-  light: ['#f5f7fa', '#e4e8f0', '#d1d9e8'],
-  colorful: ['#ff9a9e', '#fad0c4', '#fbc2eb']
-};
 
 function MainContent() {
   const storiesRef = useRef(null);
   const dispatch = useDispatch();
-  const posts = useSelector((state) => state.post?.posts || []);
-  const user = useSelector((state) => state.user?.user || {});
-  const yourStory = useSelector((state) => state.yourStory?.story || []);
+  const posts = useSelector((state) => state.post.posts);
+  const user = useSelector((state) => state.user.user);
+  const yourStory = useSelector((state) => state.yourStory.story);
   const [teriStory, setTeriStory] = useState(yourStory);
   const socket = useSocket();
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -44,66 +34,23 @@ function MainContent() {
   const [notifications, setNotifications] = useState(0);
   const [messageNoti, setMessageNoti] = useState(0);
   const [allNotification, setAllNotification] = useState([]);
-  const showCall = useSelector((state) => state.call?.showCall || false);
+  const showCall = useSelector((state) => state.call.showCall);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
-  const [hoveredStory, setHoveredStory] = useState(null);
   const [backgroundIndex, setBackgroundIndex] = useState(0);
-  const { theme = 'dark' } = useTheme(); // Default to dark theme if not provided
   let postId = searchParams.get("id");
   const postRefs = useRef({});
   let navigate = useNavigate();
-  
-  const particlesInit = useCallback(async (engine) => {
-    try {
-      await loadFull(engine);
-      console.log("only for update");
-      
-    } catch (error) {
-      console.error("Failed to initialize particles:", error);
-    }
-  }, []);
 
-  const particlesLoaded = useCallback(async (container) => {
-    // Optional callback, no need for error handling here
-  }, []);
+  // Background images for animated background
+  const backgrounds = [
+    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    'linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%)',
+    'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+    'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
+    'linear-gradient(135deg, #ffc3a0 0%, #ffafbd 100%)'
+  ];
 
-  // Safe navigation function
-  const handleNavigation = useCallback((path, state) => {
-    try {
-      navigate(path, { state });
-    } catch (error) {
-      console.error("Navigation error:", error);
-    }
-  }, [navigate]);
-
-  // Safe scroll to post function
-  const scrollToPost = useCallback((id) => {
-    try {
-      if (postRefs.current[id]) {
-        postRefs.current[id].scrollIntoView({ behavior: 'smooth' });
-      }
-    } catch (error) {
-      console.error("Scroll error:", error);
-    }
-  }, []);
-
-  // Background animation cycling with error handling
-  useEffect(() => {
-    let interval;
-    try {
-      interval = setInterval(() => {
-        setBackgroundIndex((prev) => {
-          const gradients = backgroundGradients[theme] || backgroundGradients.dark;
-          return (prev + 1) % gradients.length;
-        });
-      }, 10000);
-    } catch (error) {
-      console.error("Background animation error:", error);
-    }
-    return () => clearInterval(interval);
-  }, [theme]);
-
-  // Initialize AOS with error handling
+  // Initialize AOS with more dynamic settings
   useEffect(() => {
     try {
       AOS.init({
@@ -118,159 +65,166 @@ function MainContent() {
     }
   }, []);
 
-  // Handle window resize with debounce and error handling
+  // Animate background change
   useEffect(() => {
-    let timeoutId = null;
+    const interval = setInterval(() => {
+      setBackgroundIndex((prev) => (prev + 1) % backgrounds.length);
+    }, 15000); // Change every 15 seconds
+    
+    return () => clearInterval(interval);
+  }, [backgrounds.length]);
+
+  // Handle window resize
+  useEffect(() => {
     const handleResize = () => {
-      try {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-          setIsMobile(window.innerWidth < 992);
-        }, 200);
-      } catch (error) {
-        console.error("Resize handler error:", error);
-      }
+      setIsMobile(window.innerWidth < 992);
     };
-    
-    try {
-      window.addEventListener('resize', handleResize);
-    } catch (error) {
-      console.error("Event listener error:", error);
-    }
-    
-    return () => {
-      try {
-        window.removeEventListener('resize', handleResize);
-        clearTimeout(timeoutId);
-      } catch (error) {
-        console.error("Cleanup error:", error);
-      }
-    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Handle postId parameter
-  useEffect(() => {
-    if (postId) {
-      try {
-        scrollToPost(postId);
-      } catch (error) {
-        console.error("Failed to scroll to post:", error);
-      }
+  // Check scroll position of stories
+  const checkScrollPosition = useCallback(() => {
+    if (storiesRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = storiesRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth);
     }
-  }, [postId, scrollToPost]);
+  }, []);
 
-  // Safe story scrolling function
-  const scrollStories = useCallback((direction) => {
-    try {
-      if (!storiesRef.current) return;
-      
+  // Scroll stories left or right
+  const scrollStories = (direction) => {
+    if (storiesRef.current) {
       const scrollAmount = direction === 'left' ? -300 : 300;
       storiesRef.current.scrollBy({
         left: scrollAmount,
         behavior: 'smooth'
       });
-      
-      // Update scroll buttons visibility after a delay
-      setTimeout(() => {
-        if (storiesRef.current) {
-          const { scrollLeft, scrollWidth, clientWidth } = storiesRef.current;
-          setCanScrollLeft(scrollLeft > 0);
-          setCanScrollRight(scrollLeft < scrollWidth - clientWidth);
-        }
-      }, 300);
-    } catch (error) {
-      console.error("Story scrolling error:", error);
     }
-  }, []);
+  };
 
-  // Check scroll position on stories container
+  // Fetch posts and stories
   useEffect(() => {
-    const checkScrollPosition = () => {
+    const fetchData = async () => {
       try {
-        if (storiesRef.current) {
-          const { scrollLeft, scrollWidth, clientWidth } = storiesRef.current;
-          setCanScrollLeft(scrollLeft > 0);
-          setCanScrollRight(scrollLeft < scrollWidth - clientWidth);
+        await fetchPost(dispatch);
+        const storyData = await fetchStory(dispatch);
+        if (storyData) {
+          setAllStory(storyData);
         }
       } catch (error) {
-        console.error("Scroll position check error:", error);
+        console.error("Error fetching data:", error);
       }
     };
+    
+    fetchData();
+  }, [dispatch]);
 
-    try {
-      const currentRef = storiesRef.current;
-      if (currentRef) {
-        currentRef.addEventListener('scroll', checkScrollPosition);
-        checkScrollPosition(); // Initial check
-      }
-      
-      return () => {
-        if (currentRef) {
-          currentRef.removeEventListener('scroll', checkScrollPosition);
-        }
-      };
-    } catch (error) {
-      console.error("Scroll event listener error:", error);
-    }
-  }, []);
+  // Handle socket notifications
+  useEffect(() => {
+    if (!socket) return;
 
-  // Safe notification navigation
-  const goNotification = useCallback(() => {
-    try {
-      dispatch(showNoti(true));
-      handleNavigation("/notification", true);
-    } catch (error) {
-      console.error("Notification navigation error:", error);
-    }
-  }, [dispatch, handleNavigation]);
+    const handleNotification = (data) => {
+      setAllNotification(prev => [...prev, data]);
+      setNotifications(prev => prev + 1);
+    };
 
-  // Get current gradient colors safely
-  const getCurrentGradient = useCallback(() => {
-    try {
-      const gradients = backgroundGradients[theme] || backgroundGradients.dark;
-      return `linear-gradient(135deg, ${gradients[backgroundIndex]}, ${gradients[(backgroundIndex + 1) % gradients.length]})`;
-    } catch (error) {
-      console.error("Gradient calculation error:", error);
-      return `linear-gradient(135deg, #0f0f13, #1a1a23)`;
+    const handleMessageNotification = (data) => {
+      setMessageNoti(prev => prev + 1);
+    };
+
+    socket.on("notification", handleNotification);
+    socket.on("messageNotification", handleMessageNotification);
+
+    return () => {
+      socket.off("notification", handleNotification);
+      socket.off("messageNotification", handleMessageNotification);
+    };
+  }, [socket]);
+
+  // Check for post ID in URL and scroll to it
+  useEffect(() => {
+    if (postId && postRefs.current[postId]) {
+      postRefs.current[postId].scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
     }
-  }, [theme, backgroundIndex]);
+  }, [postId, posts]);
+
+  // Update your story when it changes
+  useEffect(() => {
+    setTeriStory(yourStory);
+  }, [yourStory]);
+
+  // Check scroll position on mount and when stories change
+  useEffect(() => {
+    checkScrollPosition();
+    const timer = setTimeout(checkScrollPosition, 500); // Delay to account for rendering
+    return () => clearTimeout(timer);
+  }, [checkScrollPosition, allStory]);
+
+  // Navigation functions
+  const handleNavigation = (path, shouldDispatch = false) => {
+    navigate(path);
+    if (shouldDispatch) {
+      dispatch(showNoti(false));
+      dispatch(showMessage(false));
+    }
+  };
+
+  const goNotification = () => {
+    dispatch(showNoti(true));
+    handleNavigation("/notification", true);
+    setNotifications(0);
+  };
 
   return (
-    <div className={`main-content-container ${theme}-theme`}>
-      {/* Animated Background Elements */}
-      <div 
-        className="background-gradient" 
-        style={{ background: getCurrentGradient() }}
-      ></div>
+    <div className='main-content-container'>
+      {/* Animated Background Layer */}
+      <motion.div 
+        className="animated-background"
+        initial={{ opacity: 0 }}
+        animate={{ 
+          opacity: 0.15,
+          background: backgrounds[backgroundIndex]
+        }}
+        transition={{ duration: 3, ease: "easeInOut" }}
+      />
       
-      {theme === 'colorful' && (
-        <Particles
-          id="tsparticles"
-          init={particlesInit}
-          loaded={particlesLoaded}
-          options={{
-            fullScreen: { enable: false },
-            particles: {
-              number: { value: 30, density: { enable: true, value_area: 800 } },
-              color: { value: ["#ff9a9e", "#fad0c4", "#fbc2eb", "#a6c1ee", "#f6d365"] },
-              shape: { type: "circle" },
-              opacity: { value: 0.3, random: true, anim: { enable: true, speed: 1 } },
-              size: { value: 10, random: true, anim: { enable: true, speed: 2 } },
-              line_linked: { enable: true, distance: 150, color: "#ffffff", opacity: 0.2 },
-              move: { enable: true, speed: 1, direction: "none" }
-            },
-            interactivity: {
-              detect_on: "canvas",
-              events: {
-                onhover: { enable: true, mode: "bubble" },
-                onclick: { enable: true, mode: "push" },
-                resize: true
+      {/* Floating Particles */}
+      <div className="particles">
+        {[...Array(15)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="particle"
+            initial={{
+              x: Math.random() * 100,
+              y: Math.random() * 100,
+              scale: Math.random() * 0.5 + 0.5,
+              opacity: 0
+            }}
+            animate={{
+              x: Math.random() * 100,
+              y: Math.random() * 100,
+              opacity: Math.random() * 0.3 + 0.1,
+              transition: {
+                duration: Math.random() * 20 + 10,
+                repeat: Infinity,
+                repeatType: "reverse",
+                ease: "linear"
               }
-            },
-            retina_detect: true
-          }}
-        />
-      )}
+            }}
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              width: `${Math.random() * 10 + 5}px`,
+              height: `${Math.random() * 10 + 5}px`,
+              background: backgrounds[Math.floor(Math.random() * backgrounds.length)]
+            }}
+          />
+        ))}
+      </div>
 
       <AnimatePresence>
         {showCall && (
@@ -279,28 +233,11 @@ function MainContent() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
           >
             <Call />
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Floating Notification Bubble */}
-      {notifications > 0 && (
-        <motion.div 
-          className="floating-notification"
-          initial={{ scale: 0, y: 50 }}
-          animate={{ scale: 1, y: 0 }}
-          exit={{ scale: 0 }}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={goNotification}
-        >
-          <span>{notifications}</span>
-          <div className="pulse-effect"></div>
-        </motion.div>
-      )}
 
       {/* Mobile Header */}
       {isMobile && (
@@ -308,7 +245,8 @@ function MainContent() {
           className='mobile-header'
           initial={{ y: -50 }}
           animate={{ y: 0 }}
-          transition={{ type: 'spring' }}
+          transition={{ type: 'spring', stiffness: 300 }}
+          data-aos="fade-down"
         >
           <div className='header-content'>
             <motion.h1 
@@ -316,14 +254,10 @@ function MainContent() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              ChatFight
+              Chat Fight
             </motion.h1>
             <div className='header-icons'>
-              <motion.div 
-                className='message-icon'
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
+              <div className='message-icon'>
                 <SidebarItem
                   icon={faMessage}
                   label=""
@@ -339,17 +273,14 @@ function MainContent() {
                       className="notification-badge"
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 500 }}
                     >
                       {messageNoti}
                     </motion.span>
                   )}
                 </SidebarItem>
-              </motion.div>
-              <motion.div 
-                className='notification-icon'
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
+              </div>
+              <div className='notification-icon'>
                 <SidebarItem
                   icon={faBell}
                   label=""
@@ -362,12 +293,13 @@ function MainContent() {
                       className="notification-badge"
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 500 }}
                     >
                       {notifications}
                     </motion.span>
                   )}
                 </SidebarItem>
-              </motion.div>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -380,140 +312,124 @@ function MainContent() {
             <motion.button 
               className="scroll-button left"
               onClick={() => scrollStories('left')}
-              whileHover={{ scale: 1.2 }}
+              whileHover={{ scale: 1.1, backgroundColor: '#3a3a4a' }}
               whileTap={{ scale: 0.9 }}
+              data-aos="fade-right"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24">
-                <polyline points="15 18 9 12 15 6"></polyline>
-              </svg>
+              &#8249;
             </motion.button>
           )}
           
-          <div className="stories-container" ref={storiesRef}>
+          <div 
+            className="stories-container" 
+            ref={storiesRef}
+            onScroll={checkScrollPosition}
+          >
             <motion.div 
               className="your-story"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onHoverStart={() => setHoveredStory('your-story')}
-              onHoverEnd={() => setHoveredStory(null)}
               onClick={() => {
-                try {
-                  if (teriStory.length === 0) {
-                    dispatch(setShowModel(true));
-                  } else {
-                    dispatch(setStory({
-                      name: teriStory[0]?.user?.name || "You",
-                      media: teriStory,
-                      avatar: teriStory[0]?.user?.avatar || user.avatar?.url,
-                      you: true
-                    }));
-                    dispatch(setShowStory(true));
-                  }
-                } catch (error) {
-                  console.error("Story click handler error:", error);
+                if (!teriStory || teriStory.length === 0) {
+                  dispatch(setShowModel(true));
+                } else {
+                  dispatch(setStory({
+                    name: teriStory[0].user.name,
+                    media: teriStory,
+                    avatar: teriStory[0].user.avatar,
+                    you: true
+                  }));
+                  dispatch(setShowStory(true));
                 }
               }}
+              data-aos="fade-up"
             >
-              <div className="story-avatar">
-                <motion.img 
-                  src={user.avatar?.url || ''} 
+              <motion.div 
+                className="story-avatar"
+                whileHover={{ rotate: 5 }}
+              >
+                <img 
+                  src={user?.avatar?.url || ''} 
                   alt="user" 
                   className="avatar-image" 
-                  onError={(e) => {
-                    e.target.src = 'default-avatar.png'; // Fallback image
-                  }}
                 />
-                {teriStory.length === 0 && (
-                  <motion.div className='add-story'>
-                    <span>+</span>
-                  </motion.div>
-                )}
-              </div>
-              <motion.p className="story-username">
+                <motion.div 
+                  className='add-story'
+                  whileHover={{ scale: 1.2, rotate: 90 }}
+                >
+                  <span>+</span>
+                </motion.div>
+              </motion.div>
+              <motion.p 
+                className="story-username"
+                whileHover={{ color: '#ffffff' }}
+              >
                 you
               </motion.p>
             </motion.div>
             
-            {Array.isArray(allStory) && allStory.map((storyGroup, index) => {
-              const userName = storyGroup[0]?.user?.name || "Unknown";
-              return (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  <Story
-                    media={storyGroup}
-                    name={userName}
-                    avatar={storyGroup[0]?.user?.avatar}
-                    isHovered={hoveredStory === userName}
-                  />
-                </motion.div>
-              );
-            })}
+            {allStory.map((storyGroup, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.05 }}
+                data-aos="fade-up"
+                data-aos-delay={index * 50}
+                whileHover={{ scale: 1.03 }}
+              >
+                <Story
+                  media={storyGroup}
+                  name={storyGroup[0]?.user?.name || 'Unknown'}
+                  avatar={storyGroup[0]?.user?.avatar || ''}
+                />
+              </motion.div>
+            ))}
           </div>
           
           {canScrollRight && (
             <motion.button 
               className="scroll-button right"
               onClick={() => scrollStories('right')}
-              whileHover={{ scale: 1.2 }}
+              whileHover={{ scale: 1.1, backgroundColor: '#3a3a4a' }}
               whileTap={{ scale: 0.9 }}
+              data-aos="fade-left"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
+              &#8250;
             </motion.button>
           )}
         </div>
 
         {/* Posts Section */}
         <div className="posts-container">
-          {Array.isArray(posts) && posts.map((element, index) => (
+          {posts && posts.map((element, index) => (
             <motion.div
-              key={element?._id || index}
-              ref={(el) => element?._id && (postRefs.current[element._id] = el)}
+              key={element._id || index}
+              ref={(el) => (postRefs.current[element._id] = el)}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
-              className="post-wrapper"
+              data-aos="fade-up"
+              data-aos-delay={index * 50}
+              whileHover={{ 
+                boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3)',
+                y: -5
+              }}
             >
               <Post
-                youLiked={element?.youLiked || false}
-                likes={element?.likes?.length || 0}
-                _id={element?._id}
-                src={element?.media?.url}
-                avatar={element?.createdBy?.avatar?.url}
-                userName={element?.createdBy?._id === user?._id ? "you" : element?.createdBy?.userName}
-                createdAt={element?.createdAt}
-                comment={element?.comment}
+                youLiked={element.youLiked || false}
+                likes={element.likes?.length || 0}
+                _id={element._id}
+                src={element.media?.url || ''}
+                avatar={element.createdBy?.avatar?.url || ''}
+                userName={element.createdBy?._id === user?._id ? "you" : element.createdBy?.userName || 'Unknown'}
+                createdAt={element.createdAt}
+                comment={element.comment || []}
               />
             </motion.div>
           ))}
         </div>
       </div>
-
-      {/* Floating Action Button for Mobile */}
-      {isMobile && (
-        <motion.div 
-          className="floating-action-btn"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => {
-            try {
-              dispatch(setShowModel(true));
-            } catch (error) {
-              console.error("FAB click error:", error);
-            }
-          }}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-        </motion.div>
-      )}
 
       {/* Mobile Bottom Navigation */}
       {isMobile && <BottomSidebar />}
