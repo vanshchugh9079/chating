@@ -10,39 +10,42 @@ import { useDispatch, useSelector } from 'react-redux';
 import CommentModel from '../component/CommentModel';
 import BottomSidebar from '../component/BottomSidebar';
 import EditProfile from './Edit';
+import { ThemeProvider } from '../context/ThemeContext';
 function Home() {
   let story = useSelector((state) => state.story)
   let { showComment, comment } = useSelector((state) => state.comment)
   let { showEditModel } = useSelector(state => state.edit)
   return (
-    <div className="app bg-black ">
-      <div className='d-flex vw-100'>
-        <Sidebar />
-        <div className='w-100' style={{
-          backgroundColor: "black",
-          maxWidth:"100%",
-          maxHeight:"100vh",
-          overflowY:"auto"
-        }}>
-          <Outlet />
+    <ThemeProvider>
+      <div className="app bg-black ">
+        <div className='d-flex vw-100'>
+          <Sidebar />
+          <div className='w-100' style={{
+            backgroundColor: "black",
+            maxWidth: "100%",
+            maxHeight: "100vh",
+            overflowY: "auto"
+          }}>
+            <Outlet />
+          </div>
         </div>
-      </div>
 
-      <CreateModal />
-      <MessageModel />
-      {
-        showEditModel &&
-        <EditProfile />
-      }
-      {
-        story.showStory &&
-        <StoryShower name={story.name} media={story.media} avatar={story.avatar} you={story.you} />
-      }
-      {
-        showComment &&
-        <CommentModel comment={comment} />
-      }
-    </div>
+        <CreateModal />
+        <MessageModel />
+        {
+          showEditModel &&
+          <EditProfile />
+        }
+        {
+          story.showStory &&
+          <StoryShower name={story.name} media={story.media} avatar={story.avatar} you={story.you} />
+        }
+        {
+          showComment &&
+          <CommentModel comment={comment} />
+        }
+      </div>
+    </ThemeProvider>
   );
 }
 
