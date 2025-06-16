@@ -3,7 +3,7 @@ import '../css/mainContent.css';
 import Post from './Post';
 import Story from './Story';
 import { useDispatch, useSelector } from 'react-redux';
-import fetchPost from '../fetch/fetchPost';
+import fetchPost from '../fetch/fethPost';
 import { setShowModel } from '../redux/slice/showCreateModel';
 import fetchStory from '../fetch/fetchStory';
 import { useSocket } from "../socket/SocketContext";
