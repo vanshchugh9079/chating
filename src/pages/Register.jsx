@@ -118,9 +118,9 @@ function Register() {
       // }))
       // navigate("/")
       console.log(error);
-
       // console.error("Registration Error:", error);
       const errorMsg = error?.response?.data?.message || "Registration failed";
+      console.log(errorMsg);
       setError(errorMsg);
       triggerErrorAnimation();
       await popup("error", errorMsg, "", false, 5000);
