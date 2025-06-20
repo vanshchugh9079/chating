@@ -9,6 +9,7 @@ import { setUserData } from '../redux/slice/user.slice';
 import { useDispatch } from 'react-redux';
 import Dropzone from '../component/DropZone.jsx';
 import { Form } from 'react-bootstrap';
+import axios from 'axios';
 
 const GOOGLE_CLIENT_ID = "229496418318-afjba1k375e43lv4c4ji08ht8e76pei3.apps.googleusercontent.com";
 
@@ -58,7 +59,7 @@ function Register() {
   };
 
   const handleSubmit = useCallback(async () => {
-    if (credentials.by!="google" && (!credentials.username || !credentials.email || !credentials.password)) {
+    if (credentials.by != "google" && (!credentials.username || !credentials.email || !credentials.password)) {
       setError('Please fill in all required fields');
       triggerErrorAnimation();
       return;
@@ -75,19 +76,28 @@ function Register() {
       formData.append('password', credentials.password);
       formData.append('type', credentials.type);
       formData.append('by', credentials.by);
-      
+
       if (avatar) {
-        formData.append('avatar', avatar);
+        formData.append('file', avatar);
       } else if (credentials.avatar) {
         formData.append('avatarUrl', credentials.avatar);
       }
-
-      const response = await api.post("user/create", formData,{
-        headers:{
-          "Content-Type":"multipart/form-data"
-        }
-      });
-
+      // let response=fetch("http://192.168.29.73:3000/api/user/create",{
+      //   method:"POST",
+      //   body:formData,
+      // })
+      // response.then(data=>data.json()).then((data)=>{
+      //   console.log(data);
+      // }).catch(err=>{
+      //   console.log(err)
+      //   return
+      // }).finally(()=>{
+      //   return ;
+      // })
+      let response
+      response = await axios.post("http://192.168.29.73:3000/api/user/create", formData)
+      console.log("this is response");
+      console.log(response);
       await popup("success", "Registration successful!", "", false, 5000);
       dispatch(setUserData({ user: response?.data?.data, loggedIn: true }));
       window.localStorage.setItem("token", response?.data?.data?.token);
@@ -107,7 +117,9 @@ function Register() {
       //   loggedIn:true
       // }))
       // navigate("/")
-      console.error("Registration Error:", error);
+      console.log(error);
+
+      // console.error("Registration Error:", error);
       const errorMsg = error?.response?.data?.message || "Registration failed";
       setError(errorMsg);
       triggerErrorAnimation();
@@ -120,7 +132,7 @@ function Register() {
   useEffect(() => {
     if (gb) {
       console.log(gb);
-      
+
       handleSubmit();
     }
   }, [gb, handleSubmit]);
@@ -130,7 +142,7 @@ function Register() {
       const decodedUser = jwtDecode(response.credential);
       console.log(decodedUser);
       setCredentials({
-        username: decodedUser.name ,
+        username: decodedUser.name,
         email: decodedUser.email,
         password: "",
         phone: "",
@@ -173,10 +185,10 @@ function Register() {
           }
         `}
       </style>
-      
+
       <div className="login-background w-100 h-100 ">
         {bubbles.map(bubble => (
-          <div 
+          <div
             key={bubble.id}
             className="falling-bubble"
             style={{
@@ -188,23 +200,23 @@ function Register() {
             }}
           />
         ))}
-        
+
         <div className={`login-glass-container ${shake ? 'shake' : ''}  `} style={{ maxHeight: '99.5vh' }}>
-          <div className="custom-scroll-container" style={{ 
-            maxHeight: '89.5vh', 
+          <div className="custom-scroll-container" style={{
+            maxHeight: '89.5vh',
             overflowY: 'auto',
             paddingRight: '8px' // Add padding to prevent content from being hidden behind scrollbar
           }}>
             <h1 className="login-title">Create Account</h1>
             <p className="login-subtitle">Join us to start your conversation</p>
-            
+
             {error && (
               <div className="error-box">
                 <div className="error-icon">!</div>
                 <div className="error-message">{error}</div>
               </div>
             )}
-            
+
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -227,7 +239,7 @@ function Register() {
                   Username
                 </label>
               </div>
-              
+
               <div className="form-group">
                 <input
                   id="email"
@@ -243,7 +255,7 @@ function Register() {
                   Email
                 </label>
               </div>
-              
+
               <div className="form-group">
                 <input
                   id="phone"
@@ -259,7 +271,7 @@ function Register() {
                   Phone Number (optional)
                 </label>
               </div>
-              
+
               <div className="form-group">
                 <input
                   id="password"
@@ -297,10 +309,10 @@ function Register() {
                   }}
                 >
                   <option value="public" style={{ backgroundColor: '#1a1a1a', color: '#ffffff' }}>
-                    Public 
+                    Public
                   </option>
                   <option value="private" style={{ backgroundColor: '#1a1a1a', color: '#ffffff' }}>
-                    Private 
+                    Private
                   </option>
                 </Form.Select>
               </div>
@@ -308,7 +320,7 @@ function Register() {
               <div className="form-group mb-3">
                 <Dropzone setAvatar={setAvatar} />
               </div>
-              
+
               <button type="submit" className="login-button text-center" disabled={loading}>
                 <span className="button-text text-center ms-auto me-auto">
                   {loading ? (
@@ -322,13 +334,13 @@ function Register() {
                 {!loading && <span className="button-icon">→</span>}
               </button>
             </form>
-            
+
             <div className="or-container">
               <div className="or-line"></div>
               <span className="or-text">OR</span>
               <div className="or-line"></div>
             </div>
-            
+
             <div className="social-login">
               <GoogleLogin
                 onSuccess={handleGoogleLogin}
@@ -341,7 +353,7 @@ function Register() {
                 shape="pill"
               />
             </div>
-            
+
             <div className="login-footer">
               <div className="signup-link">
                 Already have an account? <Link to="/login" className="signup-text">Login</Link>

@@ -93,7 +93,7 @@ function LoginComponent() {
     setError(null);
     
     try {
-      const response = await api.post("user/login", {
+      const response = await api.post("/user/login", {
         name: credentials.username,
         password: credentials.password,
         email: credentials.email,
