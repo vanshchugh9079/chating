@@ -4,126 +4,433 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: rgba(0, 0, 0, 0.9);
   z-index: 1050;
+  backdrop-filter: blur(5px);
 }
-.cross{
-  z-index: 100000 !important;
+.v-border{
+  border: 2px solid white;
 }
 
 .modal-content-comment {
   width: 80%;
   max-width: 900px;
-  height: 80% ;
-  border-radius: 10px;
+  height: 80%;
   margin-bottom: auto !important;
   margin-top: auto !important;
+  overflow-y: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
+
 .modal-content-profile {
   width: max-content;
-  max-width:80% !important;
+  max-width: 80% !important;
   height: 80% !important;
   margin: 0 !important;
   padding: 0 !important;
-  border-radius: 10px !important
+  border-radius: 15px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 .img-parent {
   position: relative;
+  overflow: hidden;
+}
+.v-form-input{
+  height:20% !important
+}
+.v-send-btn{
+  z-index: 100000000000 !important;
 }
 
 .v-img {
   max-width: 100%;
   max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
 }
 
-.v-border {
-  border-right: 1px solid #333;
+.v-img:hover {
+  transform: scale(1.02);
 }
-.v-upper{
-  z-index: 1000 !important;
-}
-.all-comment {
+
+
+.all-comments {
   overflow-y: auto;
-  height: 100% !important;
-  max-height: 75% !important;
-  padding: 10px;
-}
-.all-comments{
-  overflow-y: scroll !important;
-  max-height: 75% !important;
-}
-
-.all-comments::-webkit-scrollbar{
-  background-color: rgb(156, 156, 156) !important;
-  width: 5px !important;
+  max-height: 75%;
+  padding: 15px;
+  scroll-behavior: smooth;
+  animation: fadeInScroll 0.5s ease-out forwards;
+  
+  /* Custom scrollbar with animation */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 149, 246, 0.5) transparent;
 }
 
-.all-comments::-webkit-scrollbar-thumb{
-  background-color: white;
-  border-radius: 50px;
+@keyframes fadeInScroll {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Webkit scrollbar styles with animations */
+.all-comments::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background-color: transparent;
+  transition: all 0.3s ease;
+}
+
+.all-comments::-webkit-scrollbar-track {
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.05);
+  margin: 5px 0;
+  transition: all 0.3s ease;
+}
+
+.all-comments::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background-color: rgba(0, 149, 246, 0.3);
+  background-image: linear-gradient(
+    to bottom,
+    rgba(0, 149, 246, 0.6),
+    rgba(0, 212, 255, 0.4)
+  );
+  transition: all 0.3s ease;
+  box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.1);
+}
+
+.all-comments::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 149, 246, 0.8);
+  transform: scaleX(1.1);
+}
+
+.all-comments::-webkit-scrollbar-thumb:active {
+  background-color: rgba(0, 149, 246, 1);
+}
+
+/* Scroll indicator animation */
+.all-comments::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 30px;
+  background: linear-gradient(
+    to top,
+    rgba(26, 26, 26, 0.9),
+    transparent
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.all-comments:not(:hover)::after {
+  opacity: 1;
+}
+
+/* Scroll hint animation */
+@keyframes scrollHint {
+  0% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(-10px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+}
+
+.scroll-hint {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 30px;
+  height: 50px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 15px;
+  display: flex;
+  justify-content: center;
+  padding-top: 5px;
+  animation: scrollHint 2s infinite;
+}
+
+.scroll-hint::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+}
+
+/* Smooth scrolling behavior */
+.all-comments {
+  scroll-snap-type: y proximity;
+}
+
+.all-comments > div {
+  scroll-snap-align: start;
+}
+
+/* Momentum scrolling for iOS */
+.all-comments {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Glow effect when scrolling */
+.all-comments.scrolling {
+  box-shadow: inset 0 0 15px rgba(0, 149, 246, 0.2);
+  transition: box-shadow 0.3s ease;
+}
+
+
+.all-comments::-webkit-scrollbar {
+  width: 6px !important;
+}
+
+.all-comments::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.all-comments::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
 }
 
 .comment-box {
-  padding: 10px;
-  border-bottom: 1px solid #333;
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background-color 0.2s ease;
+}
+
+.comment-box:hover {
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .message-avatar {
   width: 40px;
   height: 40px;
+  object-fit: cover;
+  transition: transform 0.2s ease;
 }
 
-.comment-box .text-white.fs-6 {
-  margin: 0;
+.message-avatar:hover {
+  transform: scale(1.1);
 }
 
-.comment-box .text-white.fs-6:first-child {
-  font-weight: bold;
+.date {
+  color: #aaa;
+  font-size: 0.8rem;
 }
+
+
 
 .form-control {
-  background-color: #2a2a2a;
-  border: none;
+  background-color: rgba(42, 42, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: white;
+  border-radius: 20px;
+  padding: 10px 20px;
+  transition: all 0.3s ease;
 }
 
 .form-control:focus {
-  background-color: #2a2a2a;
+  background-color: rgba(42, 42, 42, 0.9);
   color: white;
-  box-shadow: none;
-}
-.date{
-  color: #aaa;
+  box-shadow: 0 0 0 2px rgba(0, 149, 246, 0.3);
+  border-color: rgba(0, 149, 246, 0.5);
 }
 
-input::placeholder {
-  color: #aaa !important;
+.send-button {
+  position: absolute;
+  right: 25px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #0095f6;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
-.v-img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain; /* Ensures image/video fits properly */
+
+.send-button:disabled {
+  color: #666;
+  cursor: not-allowed;
 }
 
 .video-container {
+  position: relative;
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 !important;
+  cursor: pointer;
 }
 
 .video-container video {
   width: 100%;
-  height: 100%; /* Maintains aspect ratio */
-  max-height: 100%; /* Ensures video does not overflow */
-  object-fit: cover; /* Adjusts cropping while keeping aspect ratio */
+  height: 100%;
+  object-fit: cover;
 }
 
-
-.position-absolute.end-0.bottom-0.w-100.h-25.d-flex.align-items-center {
+.video-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
   padding: 10px;
-  background-color: #1a1a1a;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.progress-container {
+  width: 100%;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.progress-bar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #0095f6;
+  cursor: pointer;
+}
+
+.controls-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 5px;
+}
+
+.control-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.control-btn:hover {
+  transform: scale(1.1);
+}
+
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.volume-slider {
+  width: 80px;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  outline: none;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+}
+
+.play-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 3rem;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.play-icon.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.like-btn, .reply-btn {
+  background: transparent;
+  border: none;
+  color: #aaa;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+
+.like-btn:hover, .reply-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.more-options {
+  background: transparent;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.comment-box:hover .more-options {
+  opacity: 1;
+}
+
+.close-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.5);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.close-button:hover {
+  background: rgba(255, 255, 255, 0.2);
 }

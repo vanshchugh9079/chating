@@ -96,30 +96,12 @@ function Register() {
       // })
       let response
       response = await axios.post("http://192.168.29.73:3000/api/user/create", formData)
-      console.log("this is response");
-      console.log(response);
       await popup("success", "Registration successful!", "", false, 5000);
       dispatch(setUserData({ user: response?.data?.data, loggedIn: true }));
       window.localStorage.setItem("token", response?.data?.data?.token);
       navigate("/");
     } catch (error) {
-      // dispatch(setUserData({
-      //   user:{
-      //     name:"vansh",
-      //     email:"vanshchugh67@ggmail.com",
-      //     password:"a1s1d1f1g1",
-      //     avatar:{
-      //       url:"https://st3.depositphotos.com/9998432/13335/v/450/depositphotos_133352156-stock-illustration-default-placeholder-profile-icon.jpg",
-      //     },
-      //     phone:"90899677178",
-      //     token:"etuiqgu34ihiguhqi"
-      //   },
-      //   loggedIn:true
-      // }))
-      // navigate("/")
-      console.log(error);
-      // console.error("Registration Error:", error);
-      const errorMsg = error?.response?.data?.message || "Registration failed";
+      let errorMsg = error?.response?.data?.message || "Registration failed";
       console.log(errorMsg);
       setError(errorMsg);
       triggerErrorAnimation();

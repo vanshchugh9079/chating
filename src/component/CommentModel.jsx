@@ -70,7 +70,7 @@ export default function CommentModel({ comment }) {
 
   return (
     <div
-      className="modal-overlay justify-content-center d-flex align-items-center   "
+      className="modal-overlay justify-content-center d-flex align-items-center    "
       role="dialog"
       aria-modal="true"
     >
@@ -85,7 +85,7 @@ export default function CommentModel({ comment }) {
       />
 
       {/* Main Comment Modal */}
-      <Row className={` bg-dark  m-0  p-0 bg-secondary ${comment.showOnlyProfile? "modal-content-profile":" modal-content-comment"} `}>
+      <Row className={` bg-dark  m-0  p-0 bg-secondary model-main v-border ${comment.showOnlyProfile? "modal-content-profile":" modal-content-comment"} `}>
         {/* Left Side: Image or Video */}
         <div className={`v-border   col-md-6 col-12  d-lg-flex img-parent h-100 bg-black justify-content-center  align-items-center ${comment.on !== "media"  && "d-none"} ${comment.showOnlyProfile? " col-lg-12 m-0 p-0":" col-lg-5 col-md-6"}`}>
           <div className={`v-border col-lg-5 col-md-6 col-12 d-lg-flex img-parent border-0 bg-black justify-content-center align-items-center h-100 w-100 ${comment.on !== "media" && "d-none"}`}>
@@ -132,8 +132,8 @@ export default function CommentModel({ comment }) {
                   <p className=" text-center text-white mt-4">No comments yet</p>
                 )}
               </div>
-              <div className="h-25   v-upper d-flex   flex-column">
-                < div className="position-relative mt-4 ">
+              <div className=" v-upper d-flex v-form-input p-0   flex-column">
+                < div className="position-relative  mb-auto mt-2">
                   <input
                     type="text"
                     value={input}
@@ -146,7 +146,7 @@ export default function CommentModel({ comment }) {
                     className="form-control mt-auto mb-auto position-absolute  text-white "
                     placeholder="Add a comment..."
                   />
-                  <button type="button" className="fs-4 button btn d-flex align-items-center  text-primary position-absolute v-upper me-2    end-0 pointer">
+                  <button type="button" className="fs-4 button btn d-flex align-items-center  text-primary position-absolute v-upper me-2 v-send-btn    end-0 pointer fw-bold">
                     <FontAwesomeIcon
                       icon={faPaperPlane}
                       className=""

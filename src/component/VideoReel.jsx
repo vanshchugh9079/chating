@@ -1,64 +1,102 @@
 import React, { useEffect, useRef, useState } from "react";
 import "../css/videoReel.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBookmark, faComment, faHeart, faPlay, faShare, faVolumeHigh, faVolumeMute } from "@fortawesome/free-solid-svg-icons";
+import { 
+  faBookmark, 
+  faComment, 
+  faHeart, 
+  faPlay, 
+  faShare, 
+  faVolumeHigh, 
+  faVolumeMute,
+  faEllipsis
+} from "@fortawesome/free-solid-svg-icons";
 import { setComment, setShowComment } from "../redux/slice/commentSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useSocket } from "../socket/SocketContext";
 import { setUserData } from "../redux/slice/user.slice";
 import { api } from "../contant";
+import { motion, AnimatePresence } from "framer-motion";
+import { Tooltip } from "@mui/material";
+import { FaMusic } from "react-icons/fa";
 
-const VideoReel = React.forwardRef(({ setMute, mute, userName, avatar, src, playable, youFollow, you,like, _id, comment,youLiked }, ref) => {
-  const[likes,setLikes]=useState(like.length)
+const VideoReel = React.forwardRef(({ 
+  setMute, 
+  mute, 
+  userName, 
+  avatar, 
+  src, 
+  playable, 
+  youFollow, 
+  you, 
+  like, 
+  _id, 
+  comment, 
+  youLiked 
+}, ref) => {
+  const [likes, setLikes] = useState(like.length);
   const [liked, setLiked] = useState(youLiked);
   const [showPlayIcon, setShowPlayIcon] = useState(!playable);
-  const user = useSelector((state) => state.user.user)
   const [progress, setProgress] = useState(0);
-  const [loading, setLoading] = useState(true); // Loader state
-  const [saved,setSaved]=useState(false);
-  useEffect(()=>{
-    let savedReel=user.savedReel.filter((reel)=>{
-      return reel==_id;
-    })
-    if(savedReel.length>0){
-      setSaved(true)
-    }
-  },[])
-  let socket = useSocket()
-  let dispatch = useDispatch()
+  const [loading, setLoading] = useState(true);
+  const [saved, setSaved] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
+  const [doubleTapActive, setDoubleTapActive] = useState(false);
+  const user = useSelector((state) => state.user.user);
+  const lastTap = useRef(0);
+  const socket = useSocket();
+  const dispatch = useDispatch();
   const videoRef = useRef(null);
+
+  useEffect(() => {
+    const savedReel = user.savedReel.filter(reel => reel === _id);
+    if (savedReel.length > 0) {
+      setSaved(true);
+    }
+  }, [_id, user.savedReel]);
+
   const handleLike = () => {
     socket.emit("liked-post", {
       post: _id,
       id: user._id,
       liked: !liked,
       type: "reel"
-    })
-    if(liked){
-      setLikes(likes-1)
+    });
+    
+    setLiked(!liked);
+    setLikes(liked ? likes - 1 : likes + 1);
+    
+    if (!liked) {
+      setDoubleTapActive(true);
+      setTimeout(() => setDoubleTapActive(false), 1000);
     }
-    else{
-      setLikes(likes+1)
-    }
-    setLiked(!liked)
   };
+
+  const handleDoubleTap = (e) => {
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap.current;
+    
+    if (tapLength < 300 && tapLength > 0) {
+      handleLike();
+    }
+    
+    lastTap.current = currentTime;
+  };
+
   useEffect(() => {
     if (videoRef.current) {
       if (playable) {
         videoRef.current.currentTime = 0;
-        videoRef.current.muted = mute
-        videoRef.current.play();
+        videoRef.current.muted = mute;
+        videoRef.current.play().catch(e => console.log("Autoplay prevented:", e));
         setShowPlayIcon(false);
       } else {
-        videoRef.current.muted = mute;
         videoRef.current.pause();
-        videoRef.current.currentTime = 0;
         setShowPlayIcon(true);
       }
     }
-  }, [playable]);
+  }, [playable, mute]);
 
-  // Update range slider as video plays
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -69,15 +107,18 @@ const VideoReel = React.forwardRef(({ setMute, mute, userName, avatar, src, play
     };
 
     video.addEventListener("timeupdate", updateProgress);
-    video.addEventListener("loadedmetadata", () => setLoading(false)); // Hide loader when metadata is loaded
+    video.addEventListener("loadeddata", () => setLoading(false));
+    video.addEventListener("waiting", () => setLoading(true));
+    video.addEventListener("playing", () => setLoading(false));
 
     return () => {
       video.removeEventListener("timeupdate", updateProgress);
-      video.removeEventListener("loadedmetadata", () => setLoading(false));
+      video.removeEventListener("loadeddata", () => setLoading(false));
+      video.removeEventListener("waiting", () => setLoading(true));
+      video.removeEventListener("playing", () => setLoading(false));
     };
   }, []);
 
-  // Seek video when range slider is changed
   const handleSeek = (e) => {
     if (videoRef.current) {
       const newTime = (e.target.value / 100) * videoRef.current.duration;
@@ -89,7 +130,7 @@ const VideoReel = React.forwardRef(({ setMute, mute, userName, avatar, src, play
   const togglePlay = () => {
     if (videoRef.current) {
       if (videoRef.current.paused) {
-        videoRef.current.play();
+        videoRef.current.play().catch(e => console.log("Play failed:", e));
         setShowPlayIcon(false);
       } else {
         videoRef.current.pause();
@@ -98,152 +139,239 @@ const VideoReel = React.forwardRef(({ setMute, mute, userName, avatar, src, play
     }
   };
 
+  const handleSaveReel = async (e) => {
+    e.stopPropagation();
+    try {
+      const res = await api.get(`/reel/save/${saved ? "0" : "1"}/${_id}`, {
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
+      setSaved(!saved);
+      dispatch(setUserData({ user: res.data.data, loggedIn: true }));
+    } catch (error) {
+      console.error("Error saving reel:", error);
+    }
+  };
+
+  const heartVariants = {
+    initial: { scale: 0, opacity: 0 },
+    animate: { 
+      scale: [1.5, 1], 
+      opacity: [0.8, 0],
+      transition: { 
+        duration: 0.8,
+        ease: [0.16, 1, 0.3, 1]
+      }
+    }
+  };
+
+  const reelVariants = {
+    hover: { scale: 1.005 },
+    tap: { scale: 0.995 }
+  };
+
   return (
-    <div
+    <motion.div
       ref={ref}
-      className="video-reel bg-dark mt-2 ms-auto me-auto w-25 position-relative d-flex justify-content-center align-items-center"
+      className="video-reel-container"
+      style={{
+        margin: '10px 0',
+        height: 'calc(100vh - 20px)',
+      }}
       onClick={togglePlay}
+      onDoubleClick={handleDoubleTap}
+      variants={reelVariants}
+      whileHover="hover"
+      whileTap="tap"
     >
-      {/* Loader */}
+      <AnimatePresence>
+        {doubleTapActive && (
+          <motion.div
+            className="double-tap-heart"
+            variants={heartVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+          >
+            <FontAwesomeIcon icon={faHeart} className="text-danger" size="5x" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {loading && (
-        <div className="video-loader position-absolute top-50 start-50 translate-middle">
-          <div className="spinner-border text-light" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
+        <div className="video-loader">
+          <div className="spinner" />
         </div>
       )}
 
-      <div className="h-100 w-100 reel-cont p-3 p-lg-0">
+      <div className="video-wrapper">
         <video
           ref={videoRef}
-          className="video-player"
+          className="video-element"
           src={src}
           loop
-          aria-label="Video player"
-          onLoadedMetadata={() => setLoading(false)} // Hide loader when ready
-        />
-      </div>
-      <div className="  position-absolute end-0 top-0 mt-2 me-2 text-white mute-btn p-2" onClick={(e) => {
-        e.stopPropagation();
-        setMute(!mute);
-        if (videoRef.current) {
-          videoRef.current.muted = !mute;
-        }
-      }}>
-        {
-          mute &&
-          <FontAwesomeIcon icon={faVolumeMute}></FontAwesomeIcon>
-        }
-        {
-          !mute &&
-          <FontAwesomeIcon icon={faVolumeHigh}></FontAwesomeIcon>
-        }
-      </div>
-      <div className="position-absolute d-flex bottom-0 start-0 mb-4 ms-3">
-        <img src={avatar.url} alt="" className="rounded-circle mt-1" style={{ height: "30px", width: "30px" }} />
-        <div className="d-flex align-items-center">
-          <p className="text-white ms-2 fw-bold">{userName}.</p>
-        </div>
-        <div>
-          {
-            !youFollow && !you &&
-            <button className="ms-2 text-white bg-transparent btn mb-3 v-btn">
-              {!you && !youFollow && "Follow"}
-            </button>
-          }
-        </div>
-      </div>
-
-      <div className="video-overlay position-absolute bottom-0 fs-2 end-0 d-flex flex-column mb-3">
-        <FontAwesomeIcon
-          icon={faHeart}
-          className={`me-1 mb-0 ${liked ? "text-danger" : "link-overlay"}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleLike()
-          }}
-          style={{ cursor: "pointer" }}
-        />
-        <div className="d-inline m-0 p-0   bottom-0 end-0 d-flex justify-content-center align-items-center  ">
-          <p className="text-white m-0 p-0 me-1 d--inline fs-6">{likes}</p>
-        </div>
-        <FontAwesomeIcon
-          icon={faComment}
-          className="me-1 link-overlay"
-          onClick={(e) => {
-            e.stopPropagation();
-            dispatch(setComment({
-              media: src,
-              type: "reel",
-              comment: comment,
-              _id: _id,
-              on:"comment"
-            }))
-            dispatch(setShowComment(true));
-          }}
-          style={{ cursor: "pointer" }}
-        />
-        <div className="d-inline m-0 p-0   bottom-0 end-0 d-flex justify-content-center align-items-center  ">
-          <p className="text-white mb-1 m-0 p-0 me-1 d--inline fs-6">{comment?.length}</p>
-        </div>
-        <FontAwesomeIcon
-          icon={faBookmark}
-          className={`me-1 mb-2 link-overlay ${saved ?"text-white":""}`}
-          onClick={async(e) => {
-            e.stopPropagation()
-            let res;
-            if(!saved){
-              setSaved(true)
-               res=await api.get("/reel/save/1/"+_id,{
-                headers:{
-                  Authorization:`Bearer ${user.token}`,
-                }
-              })
-            }
-            else{
-              setSaved(false)
-              res=await api.get("/reel/save/0/"+_id,{
-                headers:{
-                  Authorization:`Bearer ${user.token}`,
-                }
-              })
-            }
-            console.log(res);
-            
-            dispatch(setUserData({
-              user:res.data.data,
-              loggedIn: true
-            }))
-          }}
-          style={{ cursor: "pointer" }}
+          muted={mute}
+          playsInline
+          preload="auto"
         />
       </div>
 
-      {/* Range input for video progress */}
-      <div className="w-100 position-absolute bottom-0 m-0 p-0">
+      <div className="reel-overlay">
+        <div className="left-side-content">
+          <div className="user-info">
+            <img 
+              src={avatar.url} 
+              alt={userName} 
+              className="user-avatar" 
+            />
+            <span className="username">@{userName}</span>
+            {!youFollow && !you && (
+              <button className="follow-button">Follow</button>
+            )}
+          </div>
+
+          <div className="caption-section">
+            <p className="caption">Check out this amazing reel! #fun #viral</p>
+          </div>
+
+          <div className="music-tag">
+            <FaMusic className="music-icon" />
+            <span className="music-name">Original Sound</span>
+          </div>
+        </div>
+
+        <div className="right-side-actions">
+          <Tooltip title={mute ? "Unmute" : "Mute"} placement="left">
+            <motion.button
+              className="mute-button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setMute(!mute);
+              }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <FontAwesomeIcon icon={mute ? faVolumeMute : faVolumeHigh} />
+            </motion.button>
+          </Tooltip>
+
+          <div className="action-item">
+            <motion.div
+              onClick={(e) => {
+                e.stopPropagation();
+                handleLike();
+              }}
+              whileTap={{ scale: 0.8 }}
+            >
+              <FontAwesomeIcon 
+                icon={faHeart} 
+                className={liked ? "text-danger" : "text-white"} 
+                size="lg"
+              />
+            </motion.div>
+            <span className="action-count">{likes}</span>
+          </div>
+
+          <div className="action-item">
+            <motion.div
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch(setComment({
+                  media: src,
+                  type: "reel",
+                  comment: comment,
+                  _id: _id,
+                  on: "comment"
+                }));
+                dispatch(setShowComment(true));
+              }}
+              whileTap={{ scale: 0.8 }}
+            >
+              <FontAwesomeIcon icon={faComment} size="lg" />
+            </motion.div>
+            <span className="action-count">{comment?.length}</span>
+          </div>
+
+          <div className="action-item">
+            <motion.div
+              onClick={handleSaveReel}
+              whileTap={{ scale: 0.8 }}
+            >
+              <FontAwesomeIcon 
+                icon={faBookmark} 
+                className={saved ? "text-white" : ""} 
+                size="lg"
+              />
+            </motion.div>
+          </div>
+
+          <div className="action-item">
+            <motion.div
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowOptions(!showOptions);
+              }}
+              whileTap={{ scale: 0.8 }}
+            >
+              <FontAwesomeIcon icon={faEllipsis} size="lg" />
+            </motion.div>
+          </div>
+        </div>
+      </div>
+
+      <div className="progress-container">
         <input
           type="range"
-          className="w-100 v-range"
           min="0"
           max="100"
           value={progress}
           onChange={handleSeek}
           onClick={(e) => e.stopPropagation()}
+          className="progress-bar"
         />
       </div>
 
-      {showPlayIcon && (
-        <div
-          className="video-play showUp"
-          onClick={(e) => {
-            e.stopPropagation();
-            togglePlay();
-          }}
-        >
-          <FontAwesomeIcon icon={faPlay} className="play-icon text-white position-absolute fs-1" />
-        </div>
-      )}
-    </div>
+      <AnimatePresence>
+        {showPlayIcon && (
+          <motion.div
+            className="play-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              togglePlay();
+            }}
+          >
+            <FontAwesomeIcon icon={faPlay} className="play-icon" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showOptions && (
+          <motion.div
+            className="options-menu"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button className="option-item">
+              <FontAwesomeIcon icon={faShare} />
+              <span>Share</span>
+            </button>
+            <button className="option-item" onClick={handleSaveReel}>
+              <FontAwesomeIcon icon={faBookmark} />
+              <span>{saved ? "Unsave" : "Save"}</span>
+            </button>
+            <button className="option-item" onClick={() => setMute(!mute)}>
+              <FontAwesomeIcon icon={mute ? faVolumeMute : faVolumeHigh} />
+              <span>{mute ? "Unmute" : "Mute"}</span>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 });
 

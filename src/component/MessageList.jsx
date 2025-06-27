@@ -1,147 +1,427 @@
-// src/ProfilePage.js
-import React, { useEffect, useState } from 'react';
-import '../css/messageList.css'; // Import the CSS file for styling
-import { useDispatch, useSelector } from 'react-redux';
-import { api } from '../contant';
-import { useNavigate } from 'react-router-dom';
-import { useSocket } from '../socket/SocketContext';
-import { setShowMessageModel } from '../redux/slice/showMessageModel';
-import { setShowEditModel } from '../redux/slice/editSlice';
+import React, { useEffect, useState, useMemo } from 'react'
+import '../css/messageList.css'
+import { useDispatch, useSelector } from 'react-redux'
+import { api } from '../contant'
+import { useNavigate } from 'react-router-dom'
+import { useSocket } from '../socket/SocketContext'
+import { setShowMessageModel } from '../redux/slice/showMessageModel'
+import { setShowEditModel } from "../redux/slice/editSlice"
+import { motion, AnimatePresence } from 'framer-motion'
+import { Skeleton } from '@mui/material'
+import { 
+  FiMessageSquare, 
+  FiUsers, 
+  FiSearch, 
+  FiEdit2, 
+  FiPlus,
+  FiChevronDown,
+  FiClock,
+  FiCheck,
+  FiCheckCircle
+} from 'react-icons/fi'
+import { RiRobot2Line } from 'react-icons/ri'
+import { toast } from 'react-toastify'
+import { formatDistanceToNow } from 'date-fns'
 
 const MessageList = () => {
-  let { name, token, _id } = useSelector(state => state.user.user);
-  let [allChat, setAllChat] = useState([]);
-  let socket = useSocket();
-  let navigate = useNavigate();
-  let dispatch = useDispatch()
-  let getChat = async () => {
-    try {
-      let chats = await api.get("/chat", {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+  const { name, token, _id, avatar } = useSelector(state => state.user.user)
+  const [allChat, setAllChat] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [activeTab, setActiveTab] = useState('messages')
+  const [showSearch, setShowSearch] = useState(false)
+  const socket = useSocket()
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
 
-      console.log(chats.data.data.length);
-
-      setAllChat(() => {
-        let prevChat = chats.data.data.map((c) => {
-          c.people.forEach((people) => {
-            if (people.isOnline && people._id !== _id && !c.groupChat) {
-              c = { ...c, isOnline: true };
-            }
-          });
-          console.log(c);
-
-          return c;
-        });
-        return prevChat;
-      });
-    } catch (error) {
-      console.log(error);
+  const validateToken = () => {
+    if (!token) {
+      navigate('/login')
+      return false
     }
-  };
+    return true
+  }
+
+  // Memoized chat data processing
+  const { aiChat, regularChats, filteredChats } = useMemo(() => {
+    const aiChat = allChat.find(chat => chat.name === "chat with ai")
+    const regularChats = allChat.filter(chat => chat.name !== "chat with ai")
+    
+    const filtered = regularChats.filter(chat => {
+      const matchesSearch = chat.name.toLowerCase().includes(searchQuery.toLowerCase())
+      const matchesTab = activeTab === 'messages' || chat.requests
+      return matchesSearch && matchesTab
+    })
+    
+    return { aiChat, regularChats, filteredChats: filtered }
+  }, [allChat, searchQuery, activeTab])
+
+  const getChat = async () => {
+    try {
+      if (!validateToken()) return
+      
+      setLoading(true)
+      const { data } = await api.get("/chat", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      
+      if (!Array.isArray(data?.data)) {
+        throw new Error("Invalid chat data received from server.")
+      }
+
+      const formattedChats = data.data.map(chat => ({
+        ...chat,
+        isOnline: !chat.groupChat && chat.people?.some(p => p.isOnline && p._id !== _id),
+        lastMessageTime: chat.lastMessage ? new Date(chat.lastMessage.createdAt) : null
+      }))
+      
+      setAllChat(formattedChats)
+    } catch (error) {
+      console.error("Error fetching chats:", error)
+      
+      if (error.response?.status === 401) {
+        toast.error("Session expired. Please login again.")
+        dispatch(logoutUser())
+        navigate('/login')
+      } else {
+        toast.error(error.response?.data?.message || "Failed to load chats")
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
     if (socket) {
-      let handleOnline = (user) => {
-        setAllChat((prevChat) => {
-          return prevChat.map((c) => {
-            c.people.forEach((people) => {
-              if (people._id === user._id) {
-                c = { ...c, isOnline: true };
-              }
-            });
-            return c;
-          });
-        });
-      };
+      const handlePresence = (user, online) => {
+        setAllChat(prev => prev.map(chat => ({
+          ...chat,
+          isOnline: chat.people?.some(p => 
+            p._id === user._id ? online : p.isOnline && p._id !== _id
+          )
+        })))
+      }
 
-      let handleOffline = (user) => {
-        setAllChat((prevChat) => {
-          return prevChat.map((c) => {
-            c.people.forEach((people) => {
-              if (people._id === user._id) {
-                c = { ...c, isOnline: false };
-              }
-            });
-            return c;
-          });
-        });
-      };
-
-      socket.on("offline", handleOffline);
-      socket.on("online", handleOnline);
+      socket.on("online", (user) => handlePresence(user, true))
+      socket.on("offline", (user) => handlePresence(user, false))
       socket.on("chat-created", (data) => {
-        setAllChat((prevChat) => {
-          prevChat.push(data);
-          return prevChat;
-        });
-      });
+        setAllChat(prev => [...prev, {
+          ...data,
+          isOnline: data.people?.some(p => p.isOnline && p._id !== _id)
+        }])
+      })
+
+      socket.on("auth_error", () => {
+        toast.error("Authentication failed. Please login again.")
+        dispatch(logoutUser())
+        navigate('/login')
+      })
 
       return () => {
-        socket.off("online", handleOnline);
-        socket.off("chat-created");
-        socket.off("offline", handleOffline);
-      };
+        socket.off("online")
+        socket.off("offline")
+        socket.off("chat-created")
+        socket.off("auth_error")
+      }
     }
-  }, [socket, allChat]);
+  }, [socket, _id, dispatch, navigate])
 
-  useEffect(() => {
-    console.log(name);
+  useEffect(() => { 
+    if (validateToken()) {
+      getChat()
+    }
+  }, [])
 
-    getChat();
-  }, []);
+  const formatLastSeen = (date) => {
+    if (!date) return "Active now"
+    return formatDistanceToNow(new Date(date), { addSuffix: true })
+  }
 
-  return (
-    <div className="profile-container p-2 border-0 m-0 position-relative">
-      <div className="header m-0 p-0 border-box">
-        <h2 className='ms-2  ' >{name}</h2>
-        <span className="edit-icon" onClick={() => {
-          dispatch(setShowEditModel(true))
-        }}>&#9998;</span>
-      </div>
+  const chatVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.25, ease: "easeOut" }
+    },
+    hover: { 
+      scale: 1.01,
+      backgroundColor: "rgba(255, 255, 255, 0.05)"
+    },
+    tap: { scale: 0.98 }
+  }
 
-      <div className=''>
-        <div className='m-0 p-0 btn w-100  p-2' onClick={() => navigate(`/message/${allChat[0]._id}`)}>
-          <div className="d-flex v-border position-relative">
-            <img src={"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQBQg72aurdEpJDu8909EdLHRsS6-_BL9CXrQ&s"} alt="User Avatar" className="message-avatar" />
-            <p className='text-white fw-bold ms-1 fs-6 mt-auto mb-auto me-auto'>{allChat[0]?.name}</p>
-            <div className='position-absolute end-0 d-flex align-items-center h-100'>
-            </div>
-          </div>
+  if (!token) {
+    return (
+      <div className="ml-container">
+        <div className="ml-skeleton-loader">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton 
+              key={i} 
+              variant="rectangular" 
+              animation="wave"
+              height={68} 
+              style={{ 
+                marginBottom: '12px',
+                borderRadius: '12px',
+                background: 'rgba(255, 255, 255, 0.05)'
+              }}
+            />
+          ))}
         </div>
       </div>
-      <div className="m-0 p-0 d-flex justify-content-between">
-        <span className='me-auto'>Messages</span>
-        <span className='ms-auto'>Requests</span>
+    )
+  }
+
+  return (
+    <motion.div 
+      className="ml-container"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
+      {/* Header Section */}
+      <div className="ml-header">
+        <div className="ml-user-info">
+          <motion.div 
+            className="ml-avatar-container"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => dispatch(setShowEditModel(true))}
+          >
+            <img
+              src={avatar?.url || '/default-avatar.png'}
+              alt="Profile"
+              className="ml-user-avatar"
+              onError={(e) => {
+                e.target.src = '/default-avatar.png'
+              }}
+            />
+            {socket && <div className="ml-connection-status ml-connected" title="Connected"></div>}
+          </motion.div>
+          
+          <div className="ml-user-details">
+            <h3 className="ml-username">{name}</h3>
+            <p className="ml-user-status">{socket ? 'Online' : 'Offline'}</p>
+          </div>
+        </div>
+
+        <div className="ml-header-actions">
+          <motion.button
+            className="ml-icon-button"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setShowSearch(!showSearch)}
+            aria-label="Search"
+          >
+            <FiSearch size={16} />
+          </motion.button>
+          <motion.button
+            className="ml-icon-button"
+            onClick={() => validateToken() && dispatch(setShowMessageModel(true))}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            aria-label="New chat"
+          >
+            <FiPlus size={16} />
+          </motion.button>
+        </div>
       </div>
-      <div className="chat-list-container d-flex flex-column m-lg-0   ">
-        {allChat.length > 0 ? allChat.map((chat, id) => (
-          <>
-            <div className={`m-0  btn w-100 p-2 p-lg-0 ${(chat.name === "chat with ai" || id === 0) && "d-none"}`} key={id} onClick={() => navigate(`/message/${chat?._id}`)}>
-              <div className="d-flex v-border position-relative">
-                <img src={chat?.avatar?.url} alt="User Avatar" className="message-avatar" />
-                <p className='text-white fw-bold ms-1 fs-6 mt-auto mb-auto me-auto'>{chat?.name}</p>
-                {/* <div className='position-absolute end-0 d-flex align-items-center h-100'>
-                <div className={`text-success online ${!chat?.isOnline && "d-none"} fw-bold me-3`}></div>
-              </div> */}
-              </div>
+
+      {/* Search Bar - Animated */}
+      <AnimatePresence>
+        {showSearch && (
+          <motion.div
+            className="ml-search-container"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <FiSearch className="ml-search-icon" size={14} />
+            <input
+              type="text"
+              placeholder="Search conversations..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="ml-search-input"
+              autoFocus
+            />
+            {searchQuery && (
+              <motion.button
+                className="ml-clear-search"
+                onClick={() => setSearchQuery('')}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                &times;
+              </motion.button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* AI Chat Section */}
+      {aiChat && (
+        <div className="ml-ai-section">
+          <motion.div
+            className="ml-ai-card"
+            onClick={() => validateToken() && navigate(`/message/${aiChat._id}`)}
+            variants={chatVariants}
+            initial="hidden"
+            animate="visible"
+            whileHover="hover"
+            whileTap="tap"
+          >
+            <div className="ml-ai-icon">
+              <RiRobot2Line size={20} />
             </div>
-          </>
-        )) : <p className='text-secondary'>No messages found.</p>}
-      </div>
-      <div className='   d-flex justify-content-end    bottom-0 mb-5 bottom-lg-0 position-fixed      p-0 border-box  w-100 '>
-        <button className="new-chat-button ms-2 ms-lg-5  me-auto " onClick={() => {
-          dispatch(setShowMessageModel(true))
-        }}>
-          + New Chat
+            <div className="ml-ai-info">
+              <h6 className="ml-ai-title">{aiChat.name}</h6>
+              <p className="ml-ai-subtitle">Ask anything, available 24/7</p>
+            </div>
+            <div className="ml-ai-badge">
+              <span>AI</span>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Tabs */}
+      <div className="ml-tabs-container">
+        <button
+          className={`ml-tab ${activeTab === 'messages' ? 'ml-tab-active' : ''}`}
+          onClick={() => validateToken() && setActiveTab('messages')}
+        >
+          <FiMessageSquare className="ml-tab-icon" size={14} />
+          <span>Messages</span>
+          {regularChats.length > 0 && (
+            <span className="ml-tab-counter">{regularChats.length}</span>
+          )}
+        </button>
+        <button
+          className={`ml-tab ${activeTab === 'requests' ? 'ml-tab-active' : ''}`}
+          onClick={() => validateToken() && setActiveTab('requests')}
+        >
+          <FiUsers className="ml-tab-icon" size={14} />
+          <span>Requests</span>
+          {regularChats.filter(chat => chat.requests).length > 0 && (
+            <span className="ml-tab-counter">
+              {regularChats.filter(chat => chat.requests).length}
+            </span>
+          )}
         </button>
       </div>
 
-      {/* New Chat Button */}
-    </div>
-  );
-};
+      {/* Chat List */}
+      <div className="ml-chat-list">
+        {loading ? (
+          <div className="ml-skeleton-loader">
+            {[...Array(5)].map((_, i) => (
+              <Skeleton 
+                key={i} 
+                variant="rectangular" 
+                animation="wave"
+                height={68} 
+                style={{ 
+                  marginBottom: '12px',
+                  borderRadius: '12px',
+                  background: 'rgba(255, 255, 255, 0.05)'
+                }}
+              />
+            ))}
+          </div>
+        ) : filteredChats.length > 0 ? (
+          <AnimatePresence>
+            {filteredChats.map((chat) => (
+              <motion.div
+                key={chat._id}
+                className={`ml-chat-item ${chat.isOnline ? 'ml-online' : ''} ${chat.unreadCount > 0 ? 'ml-unread' : ''}`}
+                onClick={() => validateToken() && navigate(`/message/${chat._id}`)}
+                variants={chatVariants}
+                initial="hidden"
+                animate="visible"
+                whileHover="hover"
+                whileTap="tap"
+                exit={{ opacity: 0, x: -10 }}
+                layout
+              >
+                <div className="ml-chat-avatar-container">
+                  <img 
+                    src={chat.avatar?.url || '/default-chat.png'} 
+                    alt="Chat Avatar" 
+                    className="ml-chat-avatar"
+                    onError={(e) => {
+                      e.target.src = '/default-chat.png'
+                    }}
+                  />
+                  {!chat.groupChat && chat.isOnline && (
+                    <div className="ml-online-indicator" title="Online"></div>
+                  )}
+                </div>
+                
+                <div className="ml-chat-content">
+                  <div className="ml-chat-header">
+                    <h5 className="ml-chat-name">{chat.name}</h5>
+                    {chat.lastMessageTime && (
+                      <span className="ml-chat-time">
+                        {formatDistanceToNow(chat.lastMessageTime, { addSuffix: true })}
+                      </span>
+                    )}
+                  </div>
+                </div>
 
-export default MessageList;
+                {chat.unreadCount > 0 && (
+                  <div className="ml-unread-badge">
+                    {chat.unreadCount > 9 ? '9+' : chat.unreadCount}
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        ) : (
+          <motion.div 
+            className="ml-empty-state"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className="ml-empty-icon">
+              {activeTab === 'messages' ? <FiMessageSquare size={32} /> : <FiUsers size={32} />}
+            </div>
+            <h4 className="ml-empty-title">No {activeTab} found</h4>
+            <p className="ml-empty-description">
+              {activeTab === 'messages' 
+                ? 'Start a new conversation to see it here' 
+                : 'You have no pending requests'}
+            </p>
+            <motion.button
+              className="ml-empty-button"
+              onClick={() => dispatch(setShowMessageModel(true))}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <FiPlus className="ml-button-icon" size={14} />
+              {activeTab === 'messages' ? 'Start new chat' : 'Find people'}
+            </motion.button>
+          </motion.div>
+        )}
+      </div>
+
+      {/* New Chat Button - Floating */}
+      <motion.button 
+        className="ml-new-chat-button"
+        onClick={() => validateToken() && dispatch(setShowMessageModel(true))}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <FiPlus className="ml-button-icon" size={18} />
+      </motion.button>
+    </motion.div>
+  )
+}
+
+export default MessageList

@@ -8,19 +8,15 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { setShowModel } from '../redux/slice/showCreateModel';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Dropdown, Row } from 'react-bootstrap';
+import { Dropdown } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import logo from "../asset/images/favicon.webp";
 import { useSocket } from '../socket/SocketContext';
 import { api } from '../contant';
 import NotificationBar from './NotificationBar';
-import { setUserData } from '../redux/slice/user.slice';
-import popup from '../model/popup';
-import { setCall, setShowCall, setWho } from '../redux/slice/callSlice';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { fadeIn, slideIn, staggerContainer } from '../utlis/motion';
 
 const Sidebar = () => {
   const dispatch = useDispatch();
@@ -39,25 +35,19 @@ const Sidebar = () => {
 
   const socket = useSocket();
 
-  // Initialize AOS
-  useEffect(() => {
-    AOS.init({
-      duration: 800,
-      easing: 'ease-in-out',
-      once: false
-    });
-  }, []);
-
   // Handle window resize
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 992);
+      if (window.innerWidth >= 992 && showNotificationBar) {
+        setShowNotificationBar(false);
+      }
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [showNotificationBar]);
 
-  let handleBorder = () => {
+  const handleBorder = () => {
     if (!current) return;
     if (prev === current) return;
     let currElement = document.querySelector("." + current);
@@ -149,133 +139,226 @@ const Sidebar = () => {
     fetchNotifications();
   }, []);
 
-  useEffect(() => {
-    if (socket) {
-      const handleMessageReceived = (data) => setMessageNoti((prev) => prev + 1);
-      const handleNotification = (data) => {
-        setNotifications((prev) => prev + 1);
-        setAllNotification((prev) => [...prev, data.notification]);
-      };
-      const handleYourNotification = (data) => {
-        setNotifications((prev) => prev - 1);
-        setAllNotification((prev) => prev.filter((e) => e._id !== data.notification._id));
-      };
-      const handleRead = (data) => data && setAllNotification(data);
-      let handleCall = (data) => {
-        navigate("/")
-        dispatch(setShowCall(true))
-        dispatch(setCall(data))
-      }
-      let handleCallEnded = (data) => {
-        dispatch(setShowCall(false))
-      }
-      let handleMakeCall = (call) => {
-        dispatch(setShowCall(true))
-        navigate("/")
-        if(call.sender==user._id){
-          dispatch(setWho("sender"))
-        }
-        else{
-          dispatch(setWho("receiver"))
-        }
-        dispatch(setCall(call))
-      }
-      socket.on("unfollow", handleNotification);
-      socket.on("follow", handleNotification);
-      socket.on('message-recieved', handleMessageReceived);
-      socket.on("follow-request", handleNotification);
-      socket.on("accept-request", handleNotification);
-      socket.on("liked-post", handleNotification);
-      socket.on("comment-post", handleNotification)
-      socket.on("accept-request-success", handleYourNotification);
-      socket.on("decline-request-success", handleYourNotification);
-      socket.on("read-notification", handleRead);
-      socket.on("recieving-call", handleCall)
-      socket.on("call-ended", handleCallEnded)
-      socket.on("make-call", handleMakeCall)
-      socket.on("recieving-call", handleMakeCall)
-
-      return () => {
-        socket.off('message-recieved', handleMessageReceived);
-        socket.off("follow", handleNotification);
-        socket.off("unfollow", handleNotification);
-        socket.off("follow-request", handleNotification);
-        socket.off("accept-request", handleNotification);
-        socket.off("accept-request-success", handleYourNotification);
-        socket.off("decline-request-success", handleYourNotification);
-        socket.off("read-notification", handleRead);
-        socket.off("liked-post", handleNotification);
-        socket.off("comment-post", handleNotification)
-        socket.off("recieving-call", handleCall)
-        socket.off("call-ended", handleCallEnded)
-        socket.off("make-call", handleMakeCall)
-      };
-    }
-  }, [socket]);
-
   const sidebarClass = classNames('sidebar-container', {
     'desktop-sidebar': !isMobile,
     'mobile-sidebar': isMobile,
     'sidebar-dec': decreaseWidth && !isMobile,
-    'dark-theme': true, // Added dark theme class
+    'dark-theme': true,
   });
 
+  // Color scheme for icons
+  const iconColors = {
+    home: '#FF6B6B',
+    search: '#4ECDC4',
+    explore: '#45B7D1',
+    reels: '#FFA5A5',
+    message: '#A5FFD6',
+    notification: '#FFD166',
+    profile: '#A5A5FF',
+    create: '#FF85A5',
+    more: '#C4C4C4'
+  };
+
   const mobileNavItems = [
-    { icon: faHouse, label: "Home", path: "/", className: "home" },
-    { icon: faVideo, label: "Reels", path: "/reel", className: "reels" },
-    { icon: faPlus, label: "Create", path: null, className: "create", action: () => dispatch(setShowModel(false)) },
-    { icon: faMessage, label: "Message", path: "/message", className: "message", notification: messageNoti },
-    { icon: faUser, label: "Profile", path: `/profile/${user?.name || 'guest'}`, className: "v-profile" },
+    { icon: faHouse, label: "Home", path: "/", className: "home", color: iconColors.home },
+    { icon: faVideo, label: "Reels", path: "/reel", className: "reels", color: iconColors.reels },
+    { icon: faPlus, label: "Create", path: null, className: "create", color: iconColors.create, action: () => dispatch(setShowModel(false)) },
+    { icon: faMessage, label: "Message", path: "/message", className: "message", color: iconColors.message, notification: messageNoti },
+    { icon: faUser, label: "Profile", path: `/profile/${user?.name || 'guest'}`, className: "v-profile", color: iconColors.profile },
   ];
 
   const desktopNavItems = [
-    { icon: faHouse, label: "Home", path: "/", className: "home" },
-    { icon: faMagnifyingGlass, label: "Search", path: "/search", className: "search" },
-    { icon: faCompass, label: "Explore", path: "/explore", className: "explore" },
-    { icon: faVideo, label: "Reels", path: "/reel", className: "reels" },
-    { icon: faMessage, label: "Message", path: "/message", className: "message", notification: messageNoti },
-    { icon: faBell, label: "Notification", path: null, className: "notification", action: goNotification, notification: notifications },
-    { icon: faUser, label: "Profile", path: `/profile/${user?.name || 'guest'}`, className: "v-profile" },
-    { icon: faPlus, label: "Create", path: null, className: "create", action: () => dispatch(setShowModel(false)) },
+    { icon: faHouse, label: "Home", path: "/", className: "home", color: iconColors.home },
+    { icon: faMagnifyingGlass, label: "Search", path: "/search", className: "search", color: iconColors.search },
+    { icon: faCompass, label: "Explore", path: "/explore", className: "explore", color: iconColors.explore },
+    { icon: faVideo, label: "Reels", path: "/reel", className: "reels", color: iconColors.reels },
+    { icon: faMessage, label: "Message", path: "/message", className: "message p-0 v-mess", color: iconColors.message, notification: messageNoti },
+    { icon: faBell, label: "Notification", path: null, className: "notification", color: iconColors.notification, action: goNotification, notification: notifications },
+    { icon: faUser, label: "Profile", path: `/profile/${user?.name || 'guest'}`, className: "v-profile", color: iconColors.profile },
+    { icon: faPlus, label: "Create", path: null, className: "create", color: iconColors.create, action: () => dispatch(setShowModel(false)) },
   ];
 
   return (
     <>
-      <Row className="m-0 p-0 w-25">
-        <motion.div 
-          className={sidebarClass}
-          initial={{ x: -300 }}
-          animate={{ x: 0 }}
-          transition={{ type: 'spring', stiffness: 100 }}
-        >
-          {!isMobile && (
+      <AnimatePresence>
+        {!isMobile && (
+          <motion.div
+            className={sidebarClass}
+            initial={{ x: -300 }}
+            animate={{ x: 0 }}
+            exit={{ x: -300 }}
+            transition={{ type: 'spring', damping: 25 }}
+            layout
+          >
             <motion.div 
               className="sidebar-header"
-              data-aos="fade-right"
+              variants={fadeIn('down', 'tween', 0.1, 0.5)}
+              initial="hidden"
+              animate="show"
             >
-              {!decreaseWidth ? (
-                <h2 className="logo-text">Chat Fight</h2>
-              ) : (
-                <img src={logo} alt="logo" className="logo-img" width={50} height={50} />
-              )}
+              <AnimatePresence mode="wait">
+                {!decreaseWidth ? (
+                  <motion.h2
+                    className="logo-text"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.2 }}
+                    key="logo-text"
+                  >
+                    Chat Fight
+                  </motion.h2>
+                ) : (
+                  <motion.img
+                    src={logo}
+                    alt="logo"
+                    className="logo-img"
+                    width={50}
+                    height={50}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.2 }}
+                    key="logo-img"
+                  />
+                )}
+              </AnimatePresence>
             </motion.div>
-          )}
 
-          <ul className="sidebar-nav">
-            {(isMobile ? mobileNavItems : desktopNavItems).map((item, index) => (
-              <motion.div 
-                key={item.className} 
+            <motion.ul 
+              className="sidebar-nav"
+              variants={staggerContainer}
+              initial="hidden"
+              animate="show"
+            >
+              {desktopNavItems.map((item, index) => (
+                <motion.li
+                  key={item.className}
+                  className={item.className}
+                  variants={fadeIn('right', 'spring', index * 0.05, 0.5)}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  layout
+                >
+                  <div className="notification-icon">
+                    <SidebarItem
+                      icon={item.icon}
+                      label={item.label}
+                      decreaseWidth={decreaseWidth && !isMobile}
+                      onClick={() => {
+                        setCurrent(item.className);
+                        if (item.action) {
+                          item.action();
+                        } else if (item.path) {
+                          handleNavigation(item.path, item.className === "message");
+                        }
+                      }}
+                      isMobile={isMobile}
+                      iconColor={item.color}
+                      isActive={current === item.className}
+                    >
+                      {item.notification > 0 && (
+                        <motion.span
+                          className={`notification-badge ${item.className === "message" ? "message-badge" : ""}`}
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: 'spring', stiffness: 500 }}
+                          style={{ 
+                            backgroundColor: item.color,
+                            boxShadow: `0 0 10px ${item.color}`
+                          }}
+                        >
+                          {item.notification}
+                        </motion.span>
+                      )}
+                    </SidebarItem>
+                  </div>
+                </motion.li>
+              ))}
+
+              <motion.li
+                variants={fadeIn('right', 'spring', 0.4, 0.5)}
+                className="more-dropdown"
+              >
+                <Dropdown>
+                  <Dropdown.Toggle
+                    variant="transparent"
+                    id="dropdown-basic"
+                    className="dropdown-toggle"
+                    aria-label="More Options"
+                    as={motion.div}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    <FontAwesomeIcon 
+                      icon={faBars} 
+                      style={{ 
+                        color: iconColors.more,
+                        filter: current === "more" ? `drop-shadow(0 0 5px ${iconColors.more})` : 'none'
+                      }} 
+                    />
+                    {!decreaseWidth && (
+                      <motion.span
+                        initial={{ opacity: 1 }}
+                        animate={{ opacity: decreaseWidth ? 0 : 1 }}
+                        transition={{ duration: 0.2 }}
+                        className="nav-label"
+                      >
+                        More
+                      </motion.span>
+                    )}
+                  </Dropdown.Toggle>
+
+                  <Dropdown.Menu 
+                    className="dropdown-menu dark-dropdown"
+                    as={motion.div}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                  >
+                    <Dropdown.Item
+                      className="logout-item"
+                      onClick={() => {}}
+                      as={motion.div}
+                      whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                    >
+                      Log Out
+                    </Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+              </motion.li>
+            </motion.ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {isMobile && (
+        <motion.div 
+          className="mobile-sidebar"
+          initial={{ y: 100 }}
+          animate={{ y: 0 }}
+          exit={{ y: 100 }}
+          transition={{ type: 'spring', damping: 25 }}
+        >
+          <motion.ul 
+            className="sidebar-nav"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="show"
+          >
+            {mobileNavItems.map((item, index) => (
+              <motion.li
+                key={item.className}
                 className={item.className}
-                data-aos="fade-right"
-                data-aos-delay={index * 50}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                variants={fadeIn('up', 'spring', index * 0.05, 0.5)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
               >
                 <div className="notification-icon">
                   <SidebarItem
                     icon={item.icon}
                     label={item.label}
-                    decreaseWidth={decreaseWidth && !isMobile}
+                    decreaseWidth={false}
                     onClick={() => {
                       setCurrent(item.className);
                       if (item.action) {
@@ -285,82 +368,85 @@ const Sidebar = () => {
                       }
                     }}
                     isMobile={isMobile}
+                    iconColor={item.color}
+                    isActive={current === item.className}
                   >
                     {item.notification > 0 && (
-                      <motion.span 
+                      <motion.span
                         className={`notification-badge ${item.className === "message" ? "message-badge" : ""}`}
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ type: 'spring', stiffness: 500 }}
+                        style={{ 
+                          backgroundColor: item.color,
+                          boxShadow: `0 0 10px ${item.color}`
+                        }}
                       >
                         {item.notification}
                       </motion.span>
                     )}
                   </SidebarItem>
                 </div>
-              </motion.div>
+              </motion.li>
             ))}
-
-            {!isMobile && (
-              <Dropdown className="more-dropdown" data-aos="fade-right" data-aos-delay={400}>
-                <Dropdown.Toggle
-                  variant="transparent"
-                  id="dropdown-basic"
-                  className="dropdown-toggle"
-                  aria-label="More Options"
-                  as={motion.div}
-                  whileHover={{ scale: 1.05 }}
-                >
-                  <FontAwesomeIcon icon={faBars} />
-                  {!decreaseWidth && <span>More</span>}
-                </Dropdown.Toggle>
-
-                <Dropdown.Menu className="dropdown-menu dark-dropdown">
-                  <Dropdown.Item
-                    className="logout-item"
-                    onClick={() =>
-                      popup("warning", "Are you sure to log out?", "", true, 10000000, true, dispatch, navigate)
-                    }
-                    as={motion.div}
-                    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
-                  >
-                    Log Out
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-            )}
-          </ul>
+          </motion.ul>
         </motion.div>
-      </Row>
-      <NotificationBar 
-        showBar={showNotificationBar} 
-        setShowBar={setShowNotificationBar} 
-        setDecresWidth={setDecreaseWidth} 
-        notifications={allNotification} 
-        allNotification={allNotification} 
-        setNotifications={setNotifications} 
+      )}
+
+      <NotificationBar
+        showBar={showNotificationBar}
+        setShowBar={setShowNotificationBar}
+        setDecresWidth={setDecreaseWidth}
+        notifications={allNotification}
+        allNotification={allNotification}
+        setNotifications={setNotifications}
+        showNotificationBar={showNotificationBar} setShowNotificationBar={setShowNotificationBar}
       />
     </>
   );
 };
 
-const SidebarItem = ({ icon, label, decreaseWidth, onClick, isMobile, children }) => (
-  <motion.li
-    className={`sidebar-item ${isMobile ? 'mobile-item' : ''}`}
+const SidebarItem = ({ icon, label, decreaseWidth, onClick, isMobile, children, iconColor, isActive }) => (
+  <motion.div
+    className={`sidebar-item ${isMobile ? 'mobile-item' : ''} ${isActive ? 'active-item' : ''}`}
     onClick={onClick}
     role="button"
     tabIndex={0}
     onKeyDown={(e) => e.key === 'Enter' && onClick && onClick()}
     aria-label={label}
-    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+    whileHover={{ 
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      scale: 1.05
+    }}
     whileTap={{ scale: 0.95 }}
+    layout
   >
     <div className="icon-container">
-      <FontAwesomeIcon icon={icon} className={`nav-icon ${isMobile ? 'mobile-icon' : ''}`} />
+      <FontAwesomeIcon 
+        icon={icon} 
+        className={`nav-icon ${isMobile ? 'mobile-icon' : ''}`}
+        style={{
+          color: iconColor,
+          filter: isActive ? `drop-shadow(0 0 8px ${iconColor})` : 'none',
+          transition: 'all 0.3s ease'
+        }}
+      />
       {children}
     </div>
-    {(!decreaseWidth || isMobile) && <span className="nav-label">{label}</span>}
-  </motion.li>
+    {(!decreaseWidth || isMobile) && (
+      <motion.span
+        className="nav-label"
+        initial={{ opacity: 1 }}
+        animate={{ opacity: decreaseWidth ? 0 : 1 }}
+        transition={{ duration: 0.2 }}
+        style={{
+          color: isActive ? iconColor : '#ffffff'
+        }}
+      >
+        {label}
+      </motion.span>
+    )}
+  </motion.div>
 );
 
 SidebarItem.propTypes = {
@@ -370,6 +456,8 @@ SidebarItem.propTypes = {
   onClick: PropTypes.func,
   children: PropTypes.node,
   isMobile: PropTypes.bool,
+  iconColor: PropTypes.string,
+  isActive: PropTypes.bool
 };
 
 SidebarItem.defaultProps = {
@@ -378,6 +466,8 @@ SidebarItem.defaultProps = {
   onClick: () => {},
   children: null,
   isMobile: false,
+  iconColor: '#ffffff',
+  isActive: false
 };
 
 export default Sidebar;
