@@ -95,7 +95,7 @@ function Register() {
       //   return ;
       // })
       let response
-      response = await axios.post("http://192.168.29.73:3000/api/user/create", formData)
+      response = await axios.post("https://chating-chhi.onrender.com/api/user/create", formData)
       await popup("success", "Registration successful!", "", false, 5000);
       dispatch(setUserData({ user: response?.data?.data, loggedIn: true }));
       window.localStorage.setItem("token", response?.data?.data?.token);
