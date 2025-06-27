@@ -22,7 +22,7 @@ app.use(helmet({
 // setup  Middleware
 app.use(express.json());
 app.use(cors({
-    origin:"https://chatfight.netlify.app",
+    origin:"*",
     credentials: true
 }))
 app.use(cookieParser())
