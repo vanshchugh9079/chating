@@ -1,25 +1,37 @@
-import React, { useState, useEffect, useRef } from "react";
-import "../css/post.css";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { 
-  faBookmark, 
-  faHeart, 
-  faMessage, 
+import {
+  faBookmark,
+  faHeart,
+  faMessage,
   faEllipsisH,
-  faShare,
-  faSmile
+  faSmile,
+  faPaperPlane
 } from "@fortawesome/free-solid-svg-icons";
-import { faHeart as farHeart, faBookmark as farBookmark } from "@fortawesome/free-regular-svg-icons";
+import { faHeart as farHeart, faBookmark as farBookmark, faComment as farComment } from "@fortawesome/free-regular-svg-icons";
+import EmojiPicker from 'emoji-picker-react';
 import { useSocket } from "../socket/SocketContext";
 import { useDispatch, useSelector } from "react-redux";
 import { setComment, setShowComment } from "../redux/slice/commentSlice";
 import { setUserData } from "../redux/slice/user.slice";
 import { api } from "../contant";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import EmojiPicker from 'emoji-picker-react';
+import "../css/post.css";
 
-export default function Post({ likes, avatar, src, userName, createdAt, _id, youLiked, comment, caption, fixedHeight, isMobile }) {
+const Post = ({
+  likes,
+  avatar,
+  src,
+  userName,
+  createdAt,
+  _id,
+  youLiked,
+  comment,
+  caption,
+  fixedHeight,
+  isMobile
+}) => {
   const [liked, setLiked] = useState(false);
   const [count, setCount] = useState(likes);
   const [saved, setSaved] = useState(false);
@@ -28,26 +40,22 @@ export default function Post({ likes, avatar, src, userName, createdAt, _id, you
   const [commentText, setCommentText] = useState("");
   const [isLoaded, setIsLoaded] = useState(false);
   const [isError, setIsError] = useState(false);
+  const [showFullCaption, setShowFullCaption] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+
   const imageRef = useRef(null);
   const optionsRef = useRef(null);
+  const captionRef = useRef(null);
+  const commentInputRef = useRef(null);
+  const postRef = useRef(null);
+
   const dispatch = useDispatch();
   const socket = useSocket();
   const navigate = useNavigate();
   const user = useSelector((state) => state.user.user);
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (optionsRef.current && !optionsRef.current.contains(event.target)) {
-        setShowOptions(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
+  // Check saved status
   useEffect(() => {
     const savedPost = user.savedPost.filter((post) => {
       return post._id ? post._id == _id : post == _id;
@@ -55,10 +63,12 @@ export default function Post({ likes, avatar, src, userName, createdAt, _id, you
     setSaved(savedPost.length > 0);
   }, [user.savedPost, _id]);
 
+  // Initialize liked state
   useEffect(() => {
     setLiked(youLiked);
   }, [youLiked]);
 
+  // Socket listeners for likes
   useEffect(() => {
     if (!socket) return;
 
@@ -76,14 +86,25 @@ export default function Post({ likes, avatar, src, userName, createdAt, _id, you
 
     socket.on("liked-post", getLike);
     socket.on("liked-post-success", likeSuccess);
-    
+
     return () => {
       socket.off("liked-post", getLike);
       socket.off("liked-post-success", likeSuccess);
     };
   }, [socket, _id]);
 
-  const handleDate = () => {
+  // Check if caption is truncated
+  useEffect(() => {
+    if (captionRef.current) {
+      const isTruncated = captionRef.current.scrollWidth > captionRef.current.clientWidth;
+      if (isTruncated && !showFullCaption) {
+        setShowFullCaption(false);
+      }
+    }
+  }, [caption, showFullCaption]);
+
+  // Format post date
+  const handleDate = useCallback(() => {
     const now = new Date();
     const postDate = new Date(createdAt);
     const diffInSeconds = Math.floor((now - postDate) / 1000);
@@ -94,34 +115,34 @@ export default function Post({ likes, avatar, src, userName, createdAt, _id, you
     if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d`;
     if (diffInSeconds < 31536000) return `${Math.floor(diffInSeconds / 2592000)}mon`;
     return `${Math.floor(diffInSeconds / 31536000)}y`;
-  };
+  }, [createdAt]);
 
-  const handleLike = () => {
+  // Handle like with enhanced overlay
+  const handleLike = useCallback(async () => {
     socket.emit("liked-post", {
       post: _id,
       id: user._id,
       liked: !liked
     });
-    setLiked(!liked);
-    
-    if (!liked) {
-      const heart = document.createElement('div');
-      heart.className = 'heart-animation';
-      heart.innerHTML = `
-        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-          d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-        </svg>
-      `;
-      imageRef.current.appendChild(heart);
-      
-      setTimeout(() => {
-        heart.remove();
-      }, 1200);
-    }
-  };
 
-  const handleSavePost = async () => {
+    setLiked(!liked);
+    setCount(prev => liked ? prev - 1 : prev + 1);
+
+    if (!liked) {
+      setShowOverlay(true);
+      setTimeout(() => setShowOverlay(false), 800);
+    }
+  }, [socket, _id, user._id, liked]);
+
+  // Double tap to like
+  const handleDoubleTap = useCallback(() => {
+    if (!liked) {
+      handleLike();
+    }
+  }, [liked, handleLike]);
+
+  // Save post
+  const handleSavePost = useCallback(async () => {
     try {
       let res;
       if (!saved) {
@@ -137,32 +158,28 @@ export default function Post({ likes, avatar, src, userName, createdAt, _id, you
           }
         });
       }
+
       setSaved(!saved);
       dispatch(setUserData({
         user: res.data.data,
         loggedIn: true
       }));
-      
-      const saveIcon = document.querySelector(`#save-icon-${_id}`);
-      if (saveIcon) {
-        saveIcon.classList.add('save-animation');
-        setTimeout(() => {
-          saveIcon.classList.remove('save-animation');
-        }, 1000);
-      }
     } catch (error) {
       console.error("Error saving post:", error);
     }
-  };
+  }, [saved, _id, user.token, dispatch]);
 
-  const handleEmojiClick = (emojiData) => {
+  // Handle emoji selection
+  const handleEmojiClick = useCallback((emojiData) => {
     setCommentText(prev => prev + emojiData.emoji);
-  };
+    commentInputRef.current.focus();
+  }, []);
 
-  const handleCommentSubmit = async (e) => {
+  // Submit comment
+  const handleCommentSubmit = useCallback(async (e) => {
     e.preventDefault();
     if (!commentText.trim()) return;
-    
+
     try {
       const res = await api.post("/post/comment", {
         post: _id,
@@ -172,297 +189,384 @@ export default function Post({ likes, avatar, src, userName, createdAt, _id, you
           Authorization: `Bearer ${user.token}`,
         }
       });
-      
+
       socket.emit("new-comment", {
         post: _id,
         comment: res.data.comment
       });
-      
-      const commentButton = document.querySelector(`#comment-button-${_id}`);
-      if (commentButton) {
-        commentButton.classList.add('comment-animation');
-        setTimeout(() => {
-          commentButton.classList.remove('comment-animation');
-        }, 1000);
-      }
-      
+
       setCommentText("");
       setShowEmojiPicker(false);
     } catch (error) {
       console.error("Error posting comment:", error);
     }
-  };
+  }, [commentText, _id, user.token, socket]);
+
+  // Open comment section
+  const openCommentSection = useCallback(() => {
+    dispatch(setComment({
+      media: src,
+      type: "post",
+      comment: comment,
+      _id: _id,
+      on: "comment"
+    }));
+    dispatch(setShowComment(true));
+  }, [dispatch, src, comment, _id]);
+
+  // Navigate to profile
+  const navigateToProfile = useCallback(() => {
+    const profileName = userName.toLowerCase() === "you" ? user.name : userName;
+    navigate("/profile/" + profileName);
+  }, [userName, user.userName, navigate]);
+
+  // Toggle caption visibility
+  const toggleCaption = useCallback(() => {
+    setShowFullCaption(!showFullCaption);
+  }, [showFullCaption]);
+
+  // Handle outside click for options menu
+  const handleOutsideClick = useCallback((e) => {
+    if (optionsRef.current && !optionsRef.current.contains(e.target)) {
+      setShowOptions(false);
+    }
+  }, []);
+
+  // Add/remove click outside listener
+  useEffect(() => {
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [handleOutsideClick]);
+
+  // Image load handler
+  const handleImageLoad = useCallback(() => {
+    setIsLoaded(true);
+  }, []);
+
+  // Image error handler
+  const handleImageError = useCallback(() => {
+    setIsError(true);
+  }, []);
 
   return (
-    <div className={`post-container ${isMobile ? 'mobile-post-container' : ''}`} id={_id}>
-      <div className="post-top">
-        <div className="post-header">
-          <motion.div 
-            className="post-image rounded-circle"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              const profileName = userName.toLowerCase() === "you" ? user.userName : userName;
-              navigate("/profile/" + profileName);
-            }}
-          >
-            <img 
-              src={avatar} 
-              alt="avatar" 
-              className="w-100 pointer h-100 rounded-circle" 
-              loading="lazy"
-            />
-          </motion.div>
-          <div 
-            className="post-user text-white pointer"
-            onClick={() => {
-              const profileName = userName.toLowerCase() === "you" ? user.userName : userName;
-              navigate("/profile/" + profileName);
-            }}
-          >
-            <div className="d-flex align-items-center">
-              <span className="username">{userName}</span>
-              <span className="verified-badge">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="#3897f0">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-              </span>
+    <motion.div
+      ref={postRef}
+      className={`post-container ${isMobile ? 'mobile' : ''}`}
+      style={{ height: fixedHeight ? (isMobile ? 'auto' : '650px') : 'auto' }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.1 }}
+      
+    >
+      {/* Post Header */}
+      <div className="post-header">
+        <div className="user-info" onClick={navigateToProfile}>
+          <div className="avatar-container">
+            <div className="avatar-gradient">
+              <img
+                src={avatar}
+                alt="avatar"
+                className="avatar-image"
+                onError={(e) => e.target.src = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'}
+              />
             </div>
-            <span className="text-secondary time-ago">{handleDate()}</span>
           </div>
-          <div className="post-options" ref={optionsRef}>
-            <motion.button 
-              className="options-button"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setShowOptions(!showOptions)}
-              aria-label="Post options"
-            >
-              <FontAwesomeIcon icon={faEllipsisH} className="text-white" />
-            </motion.button>
+
+          <div className="user-details">
+            <div className="username-container">
+              <span className="username">{userName}</span>
+              {userName !== "you" && (
+                <span className="verified-badge">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#3897f0">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                  </svg>
+                </span>
+              )}
+            </div>
+            <span className="time-ago">
+              {handleDate()}
+            </span>
+          </div>
+        </div>
+
+        <div className="post-options" ref={optionsRef}>
+          <button
+            className="options-button"
+            onClick={() => setShowOptions(!showOptions)}
+            aria-label="Post options"
+          >
+            <FontAwesomeIcon icon={faEllipsisH} />
+          </button>
+
+          <AnimatePresence>
+            {showOptions && (
+              <motion.div
+                className="options-menu"
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.15 }}
+              >
+                <button className="option-item">Report</button>
+                <button className="option-item">Unfollow</button>
+                <button className="option-item">Copy Link</button>
+                <button className="option-item">Share to...</button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Post Media with Interactive Overlay */}
+      <div 
+        className="post-media"
+        onMouseEnter={() => !isMobile && setIsHovered(true)}
+        onMouseLeave={() => !isMobile && setIsHovered(false)}
+        onTouchStart={() => isMobile && setIsHovered(true)}
+        onTouchEnd={() => isMobile && setIsHovered(false)}
+      >
+        <div className="media-container">
+          <div 
+            className="media-wrapper" 
+            ref={imageRef}
+            onDoubleClick={handleDoubleTap}
+          >
+            {!isLoaded && !isError && (
+              <div className="media-placeholder shimmer">
+                <div className="placeholder-spinner"></div>
+              </div>
+            )}
+
+            <img
+              src={src}
+              alt="Post"
+              className={`media-content ${isLoaded ? 'visible' : 'hidden'}`}
+              onLoad={handleImageLoad}
+              onError={handleImageError}
+              style={{
+                height: fixedHeight ? (isMobile ? '350px' : '500px') : 'auto',
+                objectFit: 'cover'
+              }}
+            />
+
+            {isError && (
+              <div className="media-error">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span>Image failed to load</span>
+              </div>
+            )}
+
+            {/* Enhanced Interactive Overlay */}
             <AnimatePresence>
-              {showOptions && (
+              {(showOverlay || isHovered) && (
                 <motion.div 
-                  className="options-menu"
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
+                  className="interactive-overlay"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: isHovered ? 0.7 : showOverlay ? 0.9 : 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
                 >
-                  <button className="option-item">Report</button>
-                  <button className="option-item">Unfollow</button>
-                  <button className="option-item">Copy Link</button>
-                  <button className="option-item">Share to...</button>
+                  <div className="overlay-buttons">
+                    <motion.button
+                      className="overlay-action-button like-button"
+                      whileTap={{ scale: 0.9 }}
+                      onClick={handleLike}
+                      initial={{ scale: showOverlay ? 1.5 : 1 }}
+                      animate={{ 
+                        scale: showOverlay ? [1.5, 1.2, 1] : 1,
+                        color: liked ? '#ff2d55' : '#ffffff'
+                      }}
+                      transition={{ 
+                        duration: showOverlay ? 0.8 : 0.2,
+                        ease: "easeOut"
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faHeart} size="2x" />
+                    </motion.button>
+                    
+                    <motion.button
+                      className="overlay-action-button comment-button"
+                      whileTap={{ scale: 0.9 }}
+                      onClick={openCommentSection}
+                      initial={{ scale: 1 }}
+                      animate={{ scale: 1 }}
+                    >
+                      <FontAwesomeIcon icon={faMessage} size="2x" />
+                    </motion.button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Like Animation Overlay */}
+            <AnimatePresence>
+              {showOverlay && (
+                <motion.div 
+                  className="like-animation-overlay"
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1.5 }}
+                  exit={{ opacity: 0, scale: 2 }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                >
+                  <FontAwesomeIcon 
+                    icon={faHeart} 
+                    className="overlay-icon" 
+                  />
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
         </div>
-        
-        <div className="post-media">
-          <motion.div 
-            className="image-container"
-            whileHover={{ scale: 1.005 }}
-            onHoverStart={() => setIsHovered(true)}
-            onHoverEnd={() => setIsHovered(false)}
-          >
-            <div className="image-wrapper" ref={imageRef}>
-              {!isLoaded && (
-                <div className="image-placeholder">
-                  <div className="placeholder-spinner"></div>
-                </div>
-              )}
-              <img 
-                src={src} 
-                alt="Post" 
-                className={`post-image-content ${isLoaded ? 'visible' : 'hidden'}`}
-                onLoad={() => setIsLoaded(true)}
-                onError={() => setIsError(true)}
-                loading="lazy"
-                decoding="async"
-                style={{ height: fixedHeight ? '400px' : 'auto' }}
-              />
-              {isError && (
-                <div className="image-error">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <span>Image failed to load</span>
-                </div>
-              )}
-              
-              {isHovered && (
-                <motion.div 
-                  className="image-hover-overlay"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  <motion.button 
-                    className="hover-action-button like-button"
-                    whileHover={{ scale: 1.2 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={handleLike}
-                  >
-                    <FontAwesomeIcon 
-                      icon={liked ? faHeart : farHeart} 
-                      className={`${liked ? "text-danger" : "text-white"}`} 
-                    />
-                  </motion.button>
-                  <motion.button 
-                    className="hover-action-button comment-button"
-                    whileHover={{ scale: 1.2 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => {
-                      dispatch(setComment({
-                        media: src,
-                        type: "post",
-                        comment: comment,
-                        _id: _id,
-                        on: "comment"
-                      }));
-                      dispatch(setShowComment(true));
-                    }}
-                  >
-                    <FontAwesomeIcon icon={faMessage} className="text-white" />
-                  </motion.button>
-                </motion.div>
-              )}
-            </div>
-          </motion.div>
+      </div>
 
-          <div className="post-actions">
-            <div className="left-actions">
-              <motion.button 
-                className="action-button"
-                whileHover={{ scale: 1.2 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={handleLike}
-                aria-label={liked ? "Unlike post" : "Like post"}
-              >
-                <FontAwesomeIcon 
-                  icon={liked ? faHeart : farHeart} 
-                  className={`${liked ? "text-danger heart-pulse" : "text-white"}`} 
-                />
-              </motion.button>
-              <motion.button 
-                id={`comment-button-${_id}`}
-                className="action-button"
-                whileHover={{ scale: 1.2 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => {
-                  dispatch(setComment({
-                    media: src,
-                    type: "post",
-                    comment: comment,
-                    _id: _id,
-                    on: "comment"
-                  }));
-                  dispatch(setShowComment(true));
-                }}
-                aria-label="Comment on post"
-              >
-                <FontAwesomeIcon icon={faMessage} className="text-white" />
-              </motion.button>
-              <motion.button 
-                className="action-button"
-                whileHover={{ scale: 1.2 }}
-                whileTap={{ scale: 0.9 }}
-                aria-label="Share post"
-              >
-                <FontAwesomeIcon icon={faShare} className="text-white" />
-              </motion.button>
-            </div>
-            <motion.button 
-              id={`save-icon-${_id}`}
-              className="action-button"
-              whileHover={{ scale: 1.2 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={handleSavePost}
-              aria-label={saved ? "Remove from saved" : "Save post"}
+      {/* Post Actions */}
+      <div className="post-actions">
+        <div className="actions-left">
+          <motion.button
+            className="action-button like-button"
+            onClick={handleLike}
+            aria-label={liked ? "Unlike post" : "Like post"}
+            whileTap={{ scale: 0.9 }}
+          >
+            <FontAwesomeIcon
+              icon={liked ? faHeart : farHeart}
+              className={liked ? "liked" : ""}
+            />
+          </motion.button>
+
+          <motion.button
+            className="action-button comment-button"
+            onClick={openCommentSection}
+            aria-label="Comment on post"
+            whileTap={{ scale: 0.9 }}
+          >
+            <FontAwesomeIcon icon={farComment} />
+          </motion.button>
+
+          <motion.button
+            className="action-button share-button"
+            aria-label="Share post"
+            whileTap={{ scale: 0.9 }}
+          >
+            <FontAwesomeIcon icon={faPaperPlane} />
+          </motion.button>
+        </div>
+
+        <motion.button
+          className="action-button save-button"
+          onClick={handleSavePost}
+          aria-label={saved ? "Remove from saved" : "Save post"}
+          whileTap={{ scale: 0.9 }}
+        >
+          <FontAwesomeIcon
+            icon={saved ? faBookmark : farBookmark}
+            className={saved ? "saved" : ""}
+          />
+        </motion.button>
+      </div>
+
+      {/* Post Details */}
+      <div className="post-details">
+        <p className="likes-count">
+          {count.toLocaleString()} likes
+        </p>
+
+        {caption && (
+          <div className="caption-container">
+            <p
+              className={`post-caption ${showFullCaption ? 'expanded' : ''}`}
+              ref={captionRef}
+              onClick={toggleCaption}
             >
-              <FontAwesomeIcon 
-                icon={saved ? faBookmark : farBookmark} 
-                className={`${saved ? "text-primary" : "text-white"}`} 
-              />
-            </motion.button>
-          </div>
-          
-          <div className="post-details">
-            <p className="text-white likes-count">
-              {count.toLocaleString()} likes
+              <span className="caption-username">{userName}</span>
+              <span className="caption-text">{caption}</span>
             </p>
-            {caption && (
-              <p className="text-white caption">
-                <span className="username">{userName}</span> {caption}
-              </p>
-            )}
-            {comment.length > 0 && (
-              <button 
-                className="view-comments text-secondary"
-                onClick={() => {
-                  dispatch(setComment({
-                    media: src,
-                    type: "post",
-                    comment: comment,
-                    _id: _id,
-                    on: "comment"
-                  }));
-                  dispatch(setShowComment(true));
-                }}
-                aria-label={`View ${comment.length} comments`}
+            {caption.length > 100 && (
+              <button
+                className="read-more-btn"
+                onClick={toggleCaption}
               >
-                View all {comment.length} comments
+                {showFullCaption ? 'Show less' : '...more'}
               </button>
             )}
-            <form className="comment-form" onSubmit={handleCommentSubmit}>
-              <div className="input-group">
-                <input
-                  type="text"
-                  placeholder="Add a comment..."
-                  className="form-control comment-input"
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  aria-label="Add a comment"
-                />
-                <div className="action-buttons">
-                  <motion.button 
-                    type="button" 
-                    className="emoji-button"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    aria-label="Toggle emoji picker"
-                  >
-                    <FontAwesomeIcon icon={faSmile} className="text-white" />
-                  </motion.button>
-                  <motion.button
-                    type="submit"
-                    className="post-comment-button"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    disabled={!commentText.trim()}
-                  >
-                    Post
-                  </motion.button>
-                </div>
-              </div>
+          </div>
+        )}
+
+        {comment.length > 0 && (
+          <button
+            className="view-comments"
+            onClick={openCommentSection}
+            aria-label={`View ${comment.length} comments`}
+          >
+            View all {comment.length} comments
+          </button>
+        )}
+        <form className="comment-form" onSubmit={handleCommentSubmit}>
+          <div className="form-group">
+            <AnimatePresence>
               {showEmojiPicker && (
-                <div className="emoji-picker-container">
-                  <EmojiPicker 
-                    onEmojiClick={handleEmojiClick} 
+                <motion.div
+                  className="emoji-picker-container"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <EmojiPicker
+                    onEmojiClick={handleEmojiClick}
                     width="100%"
-                    height={350}
+                    height="100%"
                     previewConfig={{ showPreview: false }}
                     skinTonesDisabled
                     searchDisabled
+                    theme="dark"
+                    style={{ width: '100%' }}
                   />
-                </div>
+                </motion.div>
               )}
-            </form>
+            </AnimatePresence>
+
+            <div className="input-container">
+              <input
+                type="text"
+                placeholder="Add a comment..."
+                className="comment-input"
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                aria-label="Add a comment"
+                ref={commentInputRef}
+              />
+
+              <div className="input-actions">
+                <motion.button
+                  type="button"
+                  className="emoji-button"
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  aria-label="Toggle emoji picker"
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <FontAwesomeIcon icon={faSmile} />
+                </motion.button>
+
+                <motion.button
+                  type="submit"
+                  className="submit-button"
+                  disabled={!commentText.trim()}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <span className="submit-text">Post</span>
+                  <FontAwesomeIcon icon={faPaperPlane} className="submit-icon" />
+                </motion.button>
+              </div>
+            </div>
           </div>
-        </div>
+        </form>
       </div>
-    </div>
+    </motion.div>
   );
-}
+};
+
+export default Post;

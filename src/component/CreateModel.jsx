@@ -4,7 +4,7 @@ import { setShowModel } from "../redux/slice/showCreateModel";
 import {
   faTimes, faMagic, faRedo, faShare,
   faImage, faVideo, faPhotoFilm, faSquarePlus,
-  faUpload, faCamera
+  faUpload, faCamera,faCheck
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PinturaEditor } from '@pqina/react-pintura';
