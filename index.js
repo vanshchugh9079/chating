@@ -27,7 +27,7 @@ const startServer = async () => {
     // Initialize Socket.IO with CORS configuration
     const io = new Server(server, {
       cors: {
-        origin: "*",
+        origin: "https://chatfight.netlify.app",
         methods: ["GET", "POST", "PUT", "DELETE"],
       },
     });

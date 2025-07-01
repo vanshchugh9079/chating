@@ -7,7 +7,8 @@ import errorHandler from "../../utils/errorHandler.js";
 const getFriendStory = async (req, res) => {
     try {
         const user = req.user;
-
+        console.log(user);
+        
         // Fetch the user's details
         const userObj = await User.findById(user.id);
         if (!userObj) {

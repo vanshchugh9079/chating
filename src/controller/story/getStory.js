@@ -6,8 +6,10 @@ import errorHandler from "../../utils/errorHandler.js";
 
 let getStory=async(req,res)=>{
     let user=req.user;
+    
     let id=req.params.id;   
     let story=await Story.find({user:id}).populate("user")
+    
     let creator=await User.findById(id)
     if(creator.type=="private"){
         if(!creator.following.includes(user.id) && creator._id!=user.id){
