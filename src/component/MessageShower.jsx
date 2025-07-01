@@ -10,7 +10,7 @@ import {
   faSmile, faEllipsisV, faSearch,
   faFilePdf, faFileImage, faFileVideo, faFileAudio,
   faCheck, faCheckDouble, faFileWord, faFileExcel,
-  faFileArchive, faFileCode, faFileDownload
+  faFileArchive, faFileCode, faFileDownload, faXmark
 } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import WaveSurfer from 'wavesurfer.js';
@@ -27,7 +27,6 @@ const MessageShower = () => {
   const { token, _id } = useSelector(state => state.user.user);
   const socket = useSocket();
   const messagesEndRef = useRef(null);
-  const onMobile = useSelector((state) => state.showNoti?.message);
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState(null);
   const [recording, setRecording] = useState(false);
@@ -44,6 +43,17 @@ const MessageShower = () => {
   const [online, setOnline] = useState(false);
   const [groupChat, setGroupChat] = useState(false);
   const [people, setPeople] = useState([]);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Initialize WaveSurfer
   useEffect(() => {
@@ -365,7 +375,7 @@ const MessageShower = () => {
 
   return (
     <motion.div 
-      className="message-shower w-100"
+      className={`message-shower ${isMobile ? 'mobile-view' : ''}`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -374,14 +384,14 @@ const MessageShower = () => {
       {/* Header */}
       <header className="chat-header">
         <div className="header-left">
-          {onMobile && (
+          {isMobile && (
             <motion.button 
               className="back-btn"
               onClick={() => navigate('/message')}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >
-              <i className="fas fa-arrow-left"></i>
+              <FontAwesomeIcon icon={faXmark} />
             </motion.button>
           )}
           <motion.div 
@@ -428,42 +438,44 @@ const MessageShower = () => {
           </motion.div>
         </div>
         
-        <div className="header-right">
-          <motion.button 
-            className="call-btn"
-            onClick={() => {
-              socket.emit("call", {
-                reciverId: people.filter((element) => element._id !== _id),
-                id: _id
-              });
-            }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <FontAwesomeIcon icon={faPhone} />
-          </motion.button>
-          <motion.button 
-            className="video-btn"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <FontAwesomeIcon icon={faVideo} />
-          </motion.button>
-          <motion.button 
-            className="search-btn"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <FontAwesomeIcon icon={faSearch} />
-          </motion.button>
-          <motion.button 
-            className="menu-btn"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <FontAwesomeIcon icon={faEllipsisV} />
-          </motion.button>
-        </div>
+        {!isMobile && (
+          <div className="header-right">
+            <motion.button 
+              className="call-btn"
+              onClick={() => {
+                socket.emit("call", {
+                  reciverId: people.filter((element) => element._id !== _id),
+                  id: _id
+                });
+              }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <FontAwesomeIcon icon={faPhone} />
+            </motion.button>
+            <motion.button 
+              className="video-btn"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <FontAwesomeIcon icon={faVideo} />
+            </motion.button>
+            <motion.button 
+              className="search-btn"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <FontAwesomeIcon icon={faSearch} />
+            </motion.button>
+            <motion.button 
+              className="menu-btn"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <FontAwesomeIcon icon={faEllipsisV} />
+            </motion.button>
+          </div>
+        )}
       </header>
 
       {/* Messages */}

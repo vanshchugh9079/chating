@@ -2,22 +2,23 @@ import React, { useEffect, useState, useMemo } from 'react'
 import '../css/messageList.css'
 import { useDispatch, useSelector } from 'react-redux'
 import { api } from '../contant'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useSocket } from '../socket/SocketContext'
 import { setShowMessageModel } from '../redux/slice/showMessageModel'
 import { setShowEditModel } from "../redux/slice/editSlice"
 import { motion, AnimatePresence } from 'framer-motion'
 import { Skeleton } from '@mui/material'
-import { 
-  FiMessageSquare, 
-  FiUsers, 
-  FiSearch, 
-  FiEdit2, 
+import {
+  FiMessageSquare,
+  FiUsers,
+  FiSearch,
+  FiEdit2,
   FiPlus,
   FiChevronDown,
   FiClock,
   FiCheck,
-  FiCheckCircle
+  FiCheckCircle,
+  FiX
 } from 'react-icons/fi'
 import { RiRobot2Line } from 'react-icons/ri'
 import { toast } from 'react-toastify'
@@ -33,6 +34,21 @@ const MessageList = () => {
   const socket = useSocket()
   const navigate = useNavigate()
   const dispatch = useDispatch()
+  const { chatId } = useParams()
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 972)
+
+  // ✅ Auto update isMobile on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 972)
+    }
+
+    window.addEventListener('resize', handleResize)
+
+    // Initial check and cleanup
+    handleResize()
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   const validateToken = () => {
     if (!token) {
@@ -46,25 +62,25 @@ const MessageList = () => {
   const { aiChat, regularChats, filteredChats } = useMemo(() => {
     const aiChat = allChat.find(chat => chat.name === "chat with ai")
     const regularChats = allChat.filter(chat => chat.name !== "chat with ai")
-    
+
     const filtered = regularChats.filter(chat => {
       const matchesSearch = chat.name.toLowerCase().includes(searchQuery.toLowerCase())
       const matchesTab = activeTab === 'messages' || chat.requests
       return matchesSearch && matchesTab
     })
-    
+
     return { aiChat, regularChats, filteredChats: filtered }
   }, [allChat, searchQuery, activeTab])
 
   const getChat = async () => {
     try {
       if (!validateToken()) return
-      
+
       setLoading(true)
       const { data } = await api.get("/chat", {
         headers: { Authorization: `Bearer ${token}` },
       })
-      
+
       if (!Array.isArray(data?.data)) {
         throw new Error("Invalid chat data received from server.")
       }
@@ -74,11 +90,11 @@ const MessageList = () => {
         isOnline: !chat.groupChat && chat.people?.some(p => p.isOnline && p._id !== _id),
         lastMessageTime: chat.lastMessage ? new Date(chat.lastMessage.createdAt) : null
       }))
-      
+
       setAllChat(formattedChats)
     } catch (error) {
       console.error("Error fetching chats:", error)
-      
+
       if (error.response?.status === 401) {
         toast.error("Session expired. Please login again.")
         dispatch(logoutUser())
@@ -96,7 +112,7 @@ const MessageList = () => {
       const handlePresence = (user, online) => {
         setAllChat(prev => prev.map(chat => ({
           ...chat,
-          isOnline: chat.people?.some(p => 
+          isOnline: chat.people?.some(p =>
             p._id === user._id ? online : p.isOnline && p._id !== _id
           )
         })))
@@ -126,7 +142,7 @@ const MessageList = () => {
     }
   }, [socket, _id, dispatch, navigate])
 
-  useEffect(() => { 
+  useEffect(() => {
     if (validateToken()) {
       getChat()
     }
@@ -139,12 +155,12 @@ const MessageList = () => {
 
   const chatVariants = {
     hidden: { opacity: 0, y: 10 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
       transition: { duration: 0.25, ease: "easeOut" }
     },
-    hover: { 
+    hover: {
       scale: 1.01,
       backgroundColor: "rgba(255, 255, 255, 0.05)"
     },
@@ -156,12 +172,12 @@ const MessageList = () => {
       <div className="ml-container">
         <div className="ml-skeleton-loader">
           {[...Array(5)].map((_, i) => (
-            <Skeleton 
-              key={i} 
-              variant="rectangular" 
+            <Skeleton
+              key={i}
+              variant="rectangular"
               animation="wave"
-              height={68} 
-              style={{ 
+              height={68}
+              style={{
                 marginBottom: '12px',
                 borderRadius: '12px',
                 background: 'rgba(255, 255, 255, 0.05)'
@@ -174,16 +190,17 @@ const MessageList = () => {
   }
 
   return (
-    <motion.div 
-      className="ml-container"
+    <motion.div
+      className={`ml-container ${!chatId && isMobile ? " vw-100 " : ""} `}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
       {/* Header Section */}
       <div className="ml-header">
+
         <div className="ml-user-info">
-          <motion.div 
+          <motion.div
             className="ml-avatar-container"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -199,7 +216,7 @@ const MessageList = () => {
             />
             {socket && <div className="ml-connection-status ml-connected" title="Connected"></div>}
           </motion.div>
-          
+
           <div className="ml-user-details">
             <h3 className="ml-username">{name}</h3>
             <p className="ml-user-status">{socket ? 'Online' : 'Offline'}</p>
@@ -225,9 +242,21 @@ const MessageList = () => {
           >
             <FiPlus size={16} />
           </motion.button>
+          {isMobile && (
+            <motion.button
+              className="ml-mobile-close"
+              onClick={() => navigate("/")}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              aria-label="Close"
+            >
+              <FiX size={30}  />
+            </motion.button>
+          )}
         </div>
       </div>
 
+      {/* Rest of the component remains the same... */}
       {/* Search Bar - Animated */}
       <AnimatePresence>
         {showSearch && (
@@ -318,12 +347,12 @@ const MessageList = () => {
         {loading ? (
           <div className="ml-skeleton-loader">
             {[...Array(5)].map((_, i) => (
-              <Skeleton 
-                key={i} 
-                variant="rectangular" 
+              <Skeleton
+                key={i}
+                variant="rectangular"
                 animation="wave"
-                height={68} 
-                style={{ 
+                height={68}
+                style={{
                   marginBottom: '12px',
                   borderRadius: '12px',
                   background: 'rgba(255, 255, 255, 0.05)'
@@ -347,9 +376,9 @@ const MessageList = () => {
                 layout
               >
                 <div className="ml-chat-avatar-container">
-                  <img 
-                    src={chat.avatar?.url || '/default-chat.png'} 
-                    alt="Chat Avatar" 
+                  <img
+                    src={chat.avatar?.url || '/default-chat.png'}
+                    alt="Chat Avatar"
                     className="ml-chat-avatar"
                     onError={(e) => {
                       e.target.src = '/default-chat.png'
@@ -359,7 +388,7 @@ const MessageList = () => {
                     <div className="ml-online-indicator" title="Online"></div>
                   )}
                 </div>
-                
+
                 <div className="ml-chat-content">
                   <div className="ml-chat-header">
                     <h5 className="ml-chat-name">{chat.name}</h5>
@@ -380,7 +409,7 @@ const MessageList = () => {
             ))}
           </AnimatePresence>
         ) : (
-          <motion.div 
+          <motion.div
             className="ml-empty-state"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -391,8 +420,8 @@ const MessageList = () => {
             </div>
             <h4 className="ml-empty-title">No {activeTab} found</h4>
             <p className="ml-empty-description">
-              {activeTab === 'messages' 
-                ? 'Start a new conversation to see it here' 
+              {activeTab === 'messages'
+                ? 'Start a new conversation to see it here'
                 : 'You have no pending requests'}
             </p>
             <motion.button
@@ -409,7 +438,7 @@ const MessageList = () => {
       </div>
 
       {/* New Chat Button - Floating */}
-      <motion.button 
+      <motion.button
         className="ml-new-chat-button"
         onClick={() => validateToken() && dispatch(setShowMessageModel(true))}
         whileHover={{ scale: 1.05 }}

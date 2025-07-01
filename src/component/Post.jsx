@@ -179,27 +179,13 @@ const Post = ({
   const handleCommentSubmit = useCallback(async (e) => {
     e.preventDefault();
     if (!commentText.trim()) return;
-
-    try {
-      const res = await api.post("/post/comment", {
-        post: _id,
-        comment: commentText
-      }, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        }
-      });
-
-      socket.emit("new-comment", {
-        post: _id,
-        comment: res.data.comment
-      });
-
-      setCommentText("");
-      setShowEmojiPicker(false);
-    } catch (error) {
-      console.error("Error posting comment:", error);
+    const payload = {
+      post:_id,
+      id: user._id,
+      content: commentText,
     }
+    socket.emit("comment-post",payload)
+    setCommentText("")
   }, [commentText, _id, user.token, socket]);
 
   // Open comment section

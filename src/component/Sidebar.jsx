@@ -32,7 +32,7 @@ const Sidebar = () => {
   const [prev, setPrev] = useState();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
   const [isOpen, setIsOpen] = useState(false);
-
+  const[messagePage,setMessagePage]=useState(false)
   const socket = useSocket();
 
   // Handle window resize
@@ -61,6 +61,7 @@ const Sidebar = () => {
 
   const goNotification = useCallback(() => {
     const isMessagePage = location.pathname.includes("message");
+    setMessagePage(isMessagePage)
     if (showNotificationBar) {
       socket.emit("read-notification", allNotification);
       setNotifications(0);
@@ -179,7 +180,7 @@ const Sidebar = () => {
   ];
 
   return (
-    <>
+    <React.Fragment className={` ${(messagePage  && isMobile) ? " d-none " :""} `}>
       <AnimatePresence>
         {!isMobile && (
           <motion.div
@@ -332,9 +333,9 @@ const Sidebar = () => {
         )}
       </AnimatePresence>
 
-      {isMobile && (
+      {isMobile && !location.pathname.includes("message") && (
         <motion.div 
-          className="mobile-sidebar"
+          className={`mobile-sidebar `}
           initial={{ y: 100 }}
           animate={{ y: 0 }}
           exit={{ y: 100 }}
@@ -402,7 +403,7 @@ const Sidebar = () => {
         setNotifications={setNotifications}
         showNotificationBar={showNotificationBar} setShowNotificationBar={setShowNotificationBar}
       />
-    </>
+    </React.Fragment>
   );
 };
 

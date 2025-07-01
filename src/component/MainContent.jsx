@@ -2,10 +2,9 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faBell, faMessage, faPlus, faChevronLeft, 
-  faChevronRight, faMoon, faSun,
-  faSearch, faHome, faCompass, faUser,
+import {
+  faBell, faMessage, faPlus, faChevronLeft,
+  faChevronRight, faSearch, faHome, faCompass, faUser,
   faHeart, faComment, faBookmark, faShare
 } from '@fortawesome/free-solid-svg-icons';
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,6 +19,8 @@ import { setShowModel } from '../redux/slice/showCreateModel';
 import { setShowStory, setStory } from '../redux/slice/showStoryModel';
 import { useSocket } from "../socket/SocketContext";
 import '../css/mainContent.css';
+import { api } from '../contant';
+import { showNoti } from '../redux/slice/showMobileNotification';
 
 function MainContent() {
   const storiesRef = useRef(null);
@@ -45,7 +46,6 @@ function MainContent() {
   const postRefs = useRef({});
   const navigate = useNavigate();
   const postId = searchParams.get("id");
-  const [darkMode, setDarkMode] = useState(true);
   const [scrollY, setScrollY] = useState(0);
   const [showFloatingBtn, setShowFloatingBtn] = useState(false);
   const [loadedImages, setLoadedImages] = useState({});
@@ -99,39 +99,20 @@ function MainContent() {
         ease: "easeOut"
       }
     },
-    hover: { 
+    hover: {
       scale: 1.1,
-      boxShadow: darkMode 
-        ? "0 8px 20px rgba(255, 255, 255, 0.2)"
-        : "0 8px 20px rgba(0, 0, 0, 0.2)"
+      boxShadow: "0 8px 20px rgba(255, 255, 255, 0.2)"
     },
     tap: { scale: 0.95 }
   };
 
   const storyButtonVariants = {
-    hover: { 
+    hover: {
       scale: 1.1,
-      backgroundColor: darkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'
+      backgroundColor: 'rgba(255,255,255,0.2)'
     },
     tap: { scale: 0.9 }
   };
-
-  // Initialize AOS
-  useEffect(() => {
-    AOS.init({
-      duration: 800,
-      easing: 'ease-in-out',
-      once: false,
-      mirror: true,
-      offset: 120,
-      delay: 100,
-      anchorPlacement: 'top-bottom'
-    });
-    
-    const handleResize = () => AOS.refresh();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   // Story gradients
   const storyGradients = [
@@ -155,7 +136,7 @@ function MainContent() {
       const { scrollLeft, scrollWidth, clientWidth } = storiesRef.current;
       setCanScrollLeft(scrollLeft > 0);
       setCanScrollRight(scrollLeft < scrollWidth - clientWidth);
-      
+
       const storyWidth = 100;
       const newIndex = Math.round(scrollLeft / storyWidth);
       setActiveStoryIndex(newIndex);
@@ -167,13 +148,13 @@ function MainContent() {
     if (storiesRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = storiesRef.current;
       let newScrollLeft;
-      
+
       if (direction === 'left') {
         newScrollLeft = Math.max(0, scrollLeft - 300);
       } else {
         newScrollLeft = Math.min(scrollWidth - clientWidth, scrollLeft + 300);
       }
-      
+
       storiesRef.current.scrollTo({
         left: newScrollLeft,
         behavior: 'smooth'
@@ -181,63 +162,22 @@ function MainContent() {
     }
   };
 
-  // Add custom scrollbar styles
+  // Initialize AOS
   useEffect(() => {
-    const style = document.createElement('style');
-    style.textContent = `
-      .main-content-container::-webkit-scrollbar {
-        width: 10px;
-        height: 10px;
-      }
-      
-      .main-content-container::-webkit-scrollbar-track {
-        background: ${darkMode ? 'rgba(30, 30, 30, 0.3)' : 'rgba(240, 240, 240, 0.3)'};
-        border-radius: 10px;
-      }
-      
-      .main-content-container::-webkit-scrollbar-thumb {
-        background: linear-gradient(
-          135deg,
-          ${darkMode ? '#4361ee, #3a0ca3, #4895ef' : '#4361ee, #3a0ca3, #4895ef'}
-        );
-        border-radius: 10px;
-        border: 2px solid ${darkMode ? '#121212' : '#f8f9fa'};
-      }
-      
-      .main-content-container::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(
-          135deg,
-          ${darkMode ? '#4895ef, #4361ee, #4cc9f0' : '#4895ef, #4361ee, #4cc9f0'}
-        );
-      }
-      
-      .stories-container::-webkit-scrollbar {
-        height: 6px;
-      }
-      
-      .stories-container::-webkit-scrollbar-track {
-        background: transparent;
-        margin: 0 50px;
-      }
-      
-      .stories-container::-webkit-scrollbar-thumb {
-        background: linear-gradient(
-          90deg,
-          ${darkMode ? '#4361ee, #3a0ca3, #4895ef' : '#4361ee, #3a0ca3, #4895ef'}
-        );
-        border-radius: 3px;
-      }
-    `;
-    document.head.appendChild(style);
-    
-    return () => document.head.removeChild(style);
-  }, [darkMode]);
+    AOS.init({
+      duration: 800,
+      easing: 'ease-in-out',
+      once: false,
+      mirror: true,
+      offset: 120,
+      delay: 100,
+      anchorPlacement: 'top-bottom'
+    });
 
-  // Toggle dark mode
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    document.body.classList.toggle('dark-mode');
-  };
+    const handleResize = () => AOS.refresh();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Fetch data
   const fetchData = useCallback(async () => {
@@ -249,13 +189,19 @@ function MainContent() {
           if (storyData) setAllStory(storyData);
         })
       ]);
+      let res = await api.get("/story/get/" + user._id, {
+        headers: {
+          'Authorization': `Bearer ${user.token}`
+        }
+      })
+      setTeriStory(res.data.data)
       setIsLoading(false);
       setTimeout(checkStoriesScrollable, 300);
     } catch (error) {
       console.error("Error fetching data:", error);
       setIsLoading(false);
     }
-  }, [dispatch, user.token, navigate, checkStoriesScrollable]);
+  }, [dispatch, user.token, navigate, checkStoriesScrollable, yourStory]);
 
   // Handle socket notifications
   useEffect(() => {
@@ -298,7 +244,7 @@ function MainContent() {
       setIsTablet(width < 1024);
       setVisiblePosts(width < 768 ? 2 : width < 1024 ? 3 : 4);
     };
-    
+
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -309,7 +255,7 @@ function MainContent() {
       setScrollY(window.scrollY);
       setShowFloatingBtn(window.scrollY > 300);
     };
-    
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -319,26 +265,26 @@ function MainContent() {
     const handleScroll = () => {
       if (mainContainerRef.current && !isFetching) {
         const { scrollTop, scrollHeight, clientHeight } = mainContainerRef.current;
-        
+
         if (scrollTop + clientHeight >= scrollHeight * 0.8 && visiblePosts < posts.length) {
           setIsFetching(true);
           setVisiblePosts(prev => {
             const newValue = prev + (isMobile ? 1 : 2);
             return Math.min(newValue, posts.length);
           });
-          
+
           setTimeout(() => {
             setIsFetching(false);
           }, 800);
         }
       }
     };
-    
+
     const container = mainContainerRef.current;
     if (container) {
       container.addEventListener('scroll', handleScroll);
     }
-    
+
     return () => {
       if (container) {
         container.removeEventListener('scroll', handleScroll);
@@ -352,7 +298,7 @@ function MainContent() {
       checkStoriesScrollable();
       checkScrollPosition();
     };
-    
+
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [checkStoriesScrollable, checkScrollPosition]);
@@ -366,9 +312,23 @@ function MainContent() {
     setLoadedImages(prev => ({ ...prev, [id]: true }));
   };
 
+  const BottomLoader = () => (
+    <motion.div
+      className="bottom-loader"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="loader-circle">
+        <div className="loader-spinner"></div>
+      </div>
+    </motion.div>
+  );
+
   return (
-    <div 
-      className={`main-content-container ${darkMode ? 'dark-mode' : ''}`} 
+    <div
+      className="main-content-container dark-mode"
       ref={mainContainerRef}
       data-aos="fade-in"
     >
@@ -390,56 +350,49 @@ function MainContent() {
         </motion.button>
       )}
 
-      {/* Theme Toggle Button */}
-      <motion.button
-        className={`theme-toggle-btn ${isMobile ? 'mobile' : 'desktop'}`}
-        onClick={toggleDarkMode}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        data-aos="fade-left"
-        data-aos-delay="200"
-      >
-        <FontAwesomeIcon icon={darkMode ? faSun : faMoon} />
-      </motion.button>
-
       {/* Mobile Header */}
       {isMobile && (
         <div className="mobile-header" data-aos="fade-down">
           <h1 className="app-logo">
             <span className="logo-highlight">Chat</span>Fight
           </h1>
-          
+
           <div className="mobile-header-actions">
-            <button 
-              className="header-action-btn" 
-              onClick={() => navigate('/direct')}
+            <button
+              className="header-action-btn message-btn"
+              onClick={() => navigate('/message')}
               data-aos="fade-left"
               data-aos-delay="100"
             >
               <FontAwesomeIcon icon={faMessage} />
-              {messageNoti > 0 && <span className="notification-badge">{messageNoti}</span>}
+              {messageNoti > 0 && (
+                <span className="notification-badge">{messageNoti}</span>
+              )}
             </button>
-            
-            <button 
-              className="header-action-btn"
+
+            <button
+              className="header-action-btn notification-btn"
               data-aos="fade-left"
+              onClick={() => dispatch(showNoti(true))}
               data-aos-delay="200"
             >
               <FontAwesomeIcon icon={faBell} />
-              {notifications > 0 && <span className="notification-badge">{notifications}</span>}
+              {notifications > 0 && (
+                <span className="notification-badge">{notifications}</span>
+              )}
             </button>
           </div>
         </div>
       )}
 
       {/* Stories Section */}
-      <div 
+      <div
         className="stories-section pb-0 mb-0"
         data-aos="fade-up"
         data-aos-delay="200"
       >
         {hasScrollableStories && canScrollLeft && (
-          <motion.button 
+          <motion.button
             className="scroll-button left"
             onClick={() => scrollStories('left')}
             variants={storyButtonVariants}
@@ -454,21 +407,22 @@ function MainContent() {
             <FontAwesomeIcon icon={faChevronLeft} />
           </motion.button>
         )}
-        
-        <div 
-          className="stories-container"  
+
+        <div
+          className="stories-container"
           ref={storiesRef}
           onScroll={checkScrollPosition}
           data-aos="fade-up"
           data-aos-delay="400"
         >
-          <motion.div 
-            className="your-story"
+          <motion.div
+            className={`your-story `}
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.3 }}
             onClick={() => {
               if (!teriStory || teriStory.length === 0) {
+                dispatch(setStory({ name: '', media: [], avatar: {}, you: false }));
                 dispatch(setShowModel(true));
               } else {
                 dispatch(setStory({
@@ -485,11 +439,11 @@ function MainContent() {
             data-aos="zoom-in"
             data-aos-delay="500"
           >
-            <div className="story-avatar">
-              <img 
-                src={user?.avatar?.url || ''} 
-                alt="Your profile" 
-                className="avatar-image" 
+            <div className={`story-avatar  ${(teriStory && (teriStory.length > 0)) && "gradient-border p-0 "} rounded-circle`} >
+              <img
+                src={user?.avatar?.url || ''}
+                alt="Your profile"
+                className="avatar-image"
                 loading="lazy"
               />
               {(!yourStory || yourStory.length === 0) && (
@@ -500,7 +454,7 @@ function MainContent() {
             </div>
             <p className="story-username">Your Story</p>
           </motion.div>
-          
+
           {allStory.map((storyGroup, index) => (
             <motion.div
               key={index}
@@ -522,9 +476,9 @@ function MainContent() {
             </motion.div>
           ))}
         </div>
-        
+
         {hasScrollableStories && canScrollRight && (
-          <motion.button 
+          <motion.button
             className="scroll-button right"
             onClick={() => scrollStories('right')}
             variants={storyButtonVariants}
@@ -544,7 +498,7 @@ function MainContent() {
         {hasScrollableStories && (
           <div className="story-scroll-indicator" data-aos="fade-up" data-aos-delay="700">
             {allStory.map((_, index) => (
-              <div 
+              <div
                 key={index}
                 className={`indicator-dot ${index === activeStoryIndex ? 'active' : ''}`}
               />
@@ -555,7 +509,7 @@ function MainContent() {
 
       {/* Posts Section */}
       {!isMobile ? (
-        <motion.div 
+        <motion.div
           className="desktop-posts-grid"
           variants={containerVariants}
           initial="hidden"
@@ -565,10 +519,9 @@ function MainContent() {
         >
           {isLoading ? (
             [...Array(4)].map((_, index) => (
-              <PostSkeleton 
-                key={`skeleton-${index}`} 
-                variants={desktopItemVariants} 
-                darkMode={darkMode} 
+              <PostSkeleton
+                key={`skeleton-${index}`}
+                variants={desktopItemVariants}
                 custom={index}
               />
             ))
@@ -597,7 +550,6 @@ function MainContent() {
                     createdAt={element.createdAt}
                     comment={element.comment || []}
                     caption={element.caption || ''}
-                    darkMode={darkMode}
                     onImageLoad={() => handleImageLoad(element._id)}
                     imageLoaded={loadedImages[element._id]}
                   />
@@ -607,7 +559,7 @@ function MainContent() {
           )}
         </motion.div>
       ) : (
-        <motion.div 
+        <motion.div
           className="posts-container pt-0"
           variants={containerVariants}
           initial="hidden"
@@ -617,10 +569,9 @@ function MainContent() {
         >
           {isLoading ? (
             [...Array(isMobile ? 2 : 3)].map((_, index) => (
-              <PostSkeleton 
-                key={`skeleton-${index}`} 
-                variants={itemVariants} 
-                darkMode={darkMode} 
+              <PostSkeleton
+                key={`skeleton-${index}`}
+                variants={itemVariants}
                 data-aos="fade-up"
                 data-aos-delay={index * 100}
               />
@@ -649,7 +600,6 @@ function MainContent() {
                     caption={element.caption || ''}
                     fixedHeight={true}
                     isMobile={isMobile}
-                    darkMode={darkMode}
                     onImageLoad={() => handleImageLoad(element._id)}
                     imageLoaded={loadedImages[element._id]}
                   />
@@ -660,15 +610,12 @@ function MainContent() {
         </motion.div>
       )}
 
-      {/* Loading more indicator */}
-      {visiblePosts < posts.length && (
-        <div className="loading-more" data-aos="fade-up">
-          <div className="spinner">
-            <div className="spinner-inner"></div>
-          </div>
-          <span>Loading more posts...</span>
-        </div>
-      )}
+      {/* Bottom Loader */}
+      <AnimatePresence>
+        {isFetching && visiblePosts < posts.length && (
+          <BottomLoader />
+        )}
+      </AnimatePresence>
 
       {/* Empty state */}
       {!isLoading && posts.length === 0 && (
@@ -706,31 +653,31 @@ function MainContent() {
       {/* Mobile Bottom Navigation */}
       {isMobile && (
         <div className="mobile-bottom-nav" data-aos="fade-up">
-          <button 
+          <button
             className={`nav-tab ${location.pathname === '/' ? 'active' : ''}`}
             onClick={() => navigate('/')}
           >
             <FontAwesomeIcon icon={faHome} />
           </button>
-          <button 
+          <button
             className={`nav-tab ${location.pathname === '/explore' ? 'active' : ''}`}
             onClick={() => navigate('/explore')}
           >
             <FontAwesomeIcon icon={faCompass} />
           </button>
-          <button 
+          <button
             className="nav-tab create-post-btn"
             onClick={() => dispatch(setShowModel(true))}
           >
             <FontAwesomeIcon icon={faPlus} />
           </button>
-          <button 
+          <button
             className={`nav-tab ${location.pathname === '/activity' ? 'active' : ''}`}
             onClick={() => navigate('/activity')}
           >
             <FontAwesomeIcon icon={faHeart} />
           </button>
-          <button 
+          <button
             className={`nav-tab ${location.pathname === '/profile' ? 'active' : ''}`}
             onClick={() => navigate('/profile')}
           >
@@ -742,9 +689,9 @@ function MainContent() {
   );
 }
 
-const PostSkeleton = ({ variants, darkMode, custom = 0, ...props }) => (
+const PostSkeleton = ({ variants, custom = 0, ...props }) => (
   <motion.div
-    className={`post-skeleton ${darkMode ? 'dark-mode' : ''}`}
+    className="post-skeleton dark-mode"
     variants={variants}
     custom={custom}
     initial="hidden"

@@ -179,7 +179,7 @@ export default function NotificationBar({ showBar, notifications, setShowBar, sh
                         {notification?.user?.avatar?.url ? (
                           <motion.img
                             src={notification.user.avatar.url}
-                            className="user-avatar"
+                            className="user-avatar w-100 h-100"
                             alt={notification.user.username}
                             whileHover={{ scale: 1.1 }}
                           />
