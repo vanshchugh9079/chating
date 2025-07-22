@@ -584,6 +584,8 @@
   background-color: var(--light);
   border-top: 1px solid var(--gray-dark);
   position: relative;
+  margin-bottom: auto !important;
+  margin-top: 0 !important;
 }
 
 .emoji-picker-container {
